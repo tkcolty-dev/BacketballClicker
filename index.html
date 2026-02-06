@@ -470,6 +470,10 @@
     .slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px var(--accent-glow)}
     .sbtns{display:flex;gap:10px;margin-top:20px;justify-content:center;flex-wrap:wrap}
 
+    /* Stats screen */
+    #stats-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+    .stat-val{color:var(--gold);font-weight:700;font-size:14px;text-align:right}
+
     /* Toast */
     .toast{
       position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px) scale(.9);
@@ -501,6 +505,7 @@
     <button class="btn" onclick="newGame()">New Game</button>
     <button class="btn btn-ghost" id="continueBtn" onclick="continueGame()" style="display:none">Continue</button>
     <button class="btn btn-ghost" onclick="showScreen('settings-screen','title')">Settings</button>
+    <button class="btn btn-ghost" onclick="showStats('title')">Stats</button>
   </div>
   <div class="title-stats" id="titleStats"></div>
   <div class="title-ver">BASKETBALL CLICKER</div>
@@ -512,6 +517,7 @@
     <div class="g-top">
       <button onclick="showScreen('settings-screen','game')"></button>
       <button onclick="saveGame();toast('Saved!')"></button>
+      <button onclick="showStats('game')"></button>
     </div>
 
     <div class="score-wrap">
@@ -563,6 +569,26 @@
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
       <button class="btn btn-sm" onclick="showPrestige()">Prestige</button>
       <button class="btn btn-sm btn-danger" onclick="showConfirm()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div id="stats-screen" class="screen hidden">
+  <div class="sbox">
+    <h2>Stats</h2>
+    <div class="srow"><label>Total Points Earned</label><span class="stat-val" id="stTotalEarned">0</span></div>
+    <div class="srow"><label>Highest Score</label><span class="stat-val" id="stBestScore">0</span></div>
+    <div class="srow"><label>Total Clicks</label><span class="stat-val" id="stClicks">0</span></div>
+    <div class="srow"><label>Best Combo</label><span class="stat-val" id="stMaxCombo">0</span></div>
+    <div class="srow"><label>Points/Click</label><span class="stat-val" id="stCpc">0</span></div>
+    <div class="srow"><label>Points/Sec</label><span class="stat-val" id="stPs">0</span></div>
+    <div class="srow"><label>Upgrades Owned</label><span class="stat-val" id="stUps">0</span></div>
+    <div class="srow"><label>Stars Earned</label><span class="stat-val" id="stStars">0</span></div>
+    <div class="srow"><label>Prestiges</label><span class="stat-val" id="stPrestiges">0</span></div>
+    <div class="srow"><label>Time Played</label><span class="stat-val" id="stPlayTime">0s</span></div>
+    <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
   </div>
 </div>
@@ -668,6 +694,7 @@ let G={
   buffs:[],
   ab:{storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}},
   powerShot:false,
+  bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0,
 };
 let S={particles:true,shake:true,sound:true,autosave:true,courtGlow:.6};
 let retTo='title';
@@ -704,6 +731,7 @@ tv:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2" fil
 globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4.5" ry="9.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4 7.5h16M4 16.5h16" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>',
 legend:'<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3" fill="currentColor"/><path d="M7 22v-6a5 5 0 0110 0v6" fill="currentColor"/><polygon points="12,12 13.5,15 17,15.5 14.5,17.5 15.2,21 12,19 8.8,21 9.5,17.5 7,15.5 10.5,15" fill="#ffcc44"/></svg>',
 rocket:'<svg viewBox="0 0 24 24"><path d="M12 2c-2 4-3 8-3 12l3 4 3-4c0-4-1-8-3-12z" fill="currentColor"/><path d="M9 14l-3 3 1 3 2-2M15 14l3 3-1 3-2-2" fill="currentColor" opacity=".7"/><circle cx="12" cy="10" r="2" fill="#0d1117"/><path d="M10 20l2 2 2-2" fill="currentColor" opacity=".5"/></svg>',
+chart:'<svg viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1" fill="currentColor"/><rect x="10" y="9" width="4" height="12" rx="1" fill="currentColor"/><rect x="17" y="4" width="4" height="17" rx="1" fill="currentColor"/></svg>',
 };
 
 const UPS=[
@@ -921,6 +949,7 @@ function doClick(cx,cy){
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
+  G.totalEarned+=pts;if(G.score>G.bestScore)G.bestScore=G.score;
 
   G.combo++;if(G.combo>G.maxCombo)G.maxCombo=G.combo;
   clearTimeout(G.comboT);
@@ -1083,7 +1112,7 @@ function hideGolden(){G.golden=false;document.getElementById('goldenEl').classLi
 function clickGolden(){
   if(!G.golden)return;
   const r=Math.random();
-  if(r<.3){const b=Math.max(~~(G.cpc*50+G.ps*30),100);G.score+=b;G.total+=b;toast('GOLDEN! +'+fmtN(b));}
+  if(r<.3){const b=Math.max(~~(G.cpc*50+G.ps*30),100);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;toast('GOLDEN! +'+fmtN(b));}
   else if(r<.6){addBuff('frenzy',7,77000);toast('GOLDEN FRENZY! x7 for 77s!');}
   else if(r<.85){addBuff('cf',777,13000);toast('CLICK FRENZY! x777 for 13s!');}
   else{addBuff('ss',3,10000);toast('SHOOTING STARS! x3 auto 10s!');}
@@ -1155,7 +1184,7 @@ function startCh(){
 }
 function endCh(){
   clearInterval(chIV);G.challenge=false;document.getElementById('challengeEl').classList.remove('on');
-  const c=G.chClicks,b=c*G.cpc*3;G.score+=b;G.total+=b;updStats();
+  const c=G.chClicks,b=c*G.cpc*3;G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;updStats();
   const r=c>=50?'GODLIKE!':c>=30?'INSANE!':c>=20?'ON FIRE!':c>=15?'Great!':'Nice!';
   toast(r+' '+c+' clicks = +'+fmtN(b));
   if(c>=20){addFirework(fCan.width/2,fCan.height/2);sndCrit()}
@@ -1215,7 +1244,8 @@ setInterval(()=>{
     const now=Date.now();let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
     const tot=~~(G.ps*am*(1+G.stars*.05)*(G.fever?2:1));
-    G.score+=tot;G.total+=tot;updStats();checkMiles();
+    G.score+=tot;G.total+=tot;G.totalEarned+=tot;if(G.score>G.bestScore)G.bestScore=G.score;
+    updStats();checkMiles();
     if(Date.now()-tUpd>500){tUpd=Date.now();updUps()}
   }
 },1000);
@@ -1233,12 +1263,12 @@ function showPrestige(){
 function hidePrestige(){document.getElementById('prestigeOv').classList.remove('on')}
 function doPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);if(earn<=0)return;
-  G.stars+=earn;G.starsTotal=ns;
-  const st=G.stars,stT=G.starsTotal;
+  G.stars+=earn;G.starsTotal=ns;G.prestiges++;
+  const st=G.stars,stT=G.starsTotal,be=G.bestScore,te=G.totalEarned,pr=G.prestiges,pt=G.playTime,stt=G.startTime;
   G.score=0;G.total=0;G.clicks=0;G.cpc=1;G.ps=0;
   G.combo=0;G.maxCombo=0;G.ups={};G.miles=[];G.buffs=[];G.fever=false;
   G.golden=false;G.challenge=false;G.powerShot=false;
-  G.stars=st;G.starsTotal=stT;
+  G.stars=st;G.starsTotal=stT;G.bestScore=be;G.totalEarned=te;G.prestiges=pr;G.playTime=pt;G.startTime=stt;
   G.ab={storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}};
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1266,7 +1296,8 @@ function togSet(el,k){el.classList.toggle('on');S[k]=el.classList.contains('on')
 function saveGame(){
   localStorage.setItem('bball3',JSON.stringify({
     g:{score:G.score,total:G.total,clicks:G.clicks,cpc:G.cpc,ps:G.ps,
-      maxCombo:G.maxCombo,ups:G.ups,miles:G.miles,stars:G.stars,starsTotal:G.starsTotal},
+      maxCombo:G.maxCombo,ups:G.ups,miles:G.miles,stars:G.stars,starsTotal:G.starsTotal,
+      bestScore:G.bestScore,totalEarned:G.totalEarned,prestiges:G.prestiges,startTime:G.startTime,playTime:G.playTime},
     s:S,v:3,t:Date.now()
   }));
 }
@@ -1278,6 +1309,8 @@ function loadGame(){
     G.cpc=g.cpc||1;G.ps=g.ps||0;
     G.maxCombo=g.maxCombo||0;G.ups=g.ups||{};G.miles=g.miles||[];
     G.stars=g.stars||0;G.starsTotal=g.starsTotal||0;
+    G.bestScore=g.bestScore||0;G.totalEarned=g.totalEarned||0;G.prestiges=g.prestiges||0;
+    G.startTime=g.startTime||Date.now();G.playTime=g.playTime||0;
     if(d.s){Object.assign(S,d.s);
       document.getElementById('tPart').classList.toggle('on',S.particles);
       document.getElementById('tShake').classList.toggle('on',S.shake);
@@ -1293,7 +1326,8 @@ function resetState(){
   G={score:0,total:0,clicks:0,cpc:1,ps:0,combo:0,comboT:null,maxCombo:0,
     ups:{},miles:[],fever:false,feverT:null,golden:false,challenge:false,chClicks:0,
     stars:0,starsTotal:0,buffs:[],
-    ab:{storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}},powerShot:false};
+    ab:{storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}},powerShot:false,
+    bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0};
   displayScore=0;
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1302,7 +1336,32 @@ function resetState(){
 }
 function fullReset(){resetState();hideConfirm();showScreen('title-screen');updTitle();toast('Reset!');}
 setInterval(()=>{if(S.autosave&&G.total>0)saveGame()},30000);
+setInterval(()=>{if(!document.getElementById('game-screen').classList.contains('hidden'))G.playTime++},1000);
 addEventListener('beforeunload',()=>{if(G.total>0)saveGame()});
+
+// ══════════════ STATS PAGE ══════════════
+function fmtTime(s){
+  s=Math.floor(s);
+  const d=~~(s/86400),h=~~((s%86400)/3600),m=~~((s%3600)/60),sec=s%60;
+  if(d>0)return d+'d '+h+'h '+m+'m';
+  if(h>0)return h+'h '+m+'m '+sec+'s';
+  if(m>0)return m+'m '+sec+'s';
+  return sec+'s';
+}
+function updStatsPage(){
+  const upsOwned=Object.values(G.ups).reduce((a,b)=>a+b,0);
+  document.getElementById('stTotalEarned').textContent=fmtN(G.totalEarned);
+  document.getElementById('stBestScore').textContent=fmtN(G.bestScore);
+  document.getElementById('stClicks').textContent=fmtN(G.clicks);
+  document.getElementById('stMaxCombo').textContent=fmtN(G.maxCombo);
+  document.getElementById('stCpc').textContent=fmtN(G.cpc);
+  document.getElementById('stPs').textContent=fmtN(G.ps);
+  document.getElementById('stUps').textContent=fmtN(upsOwned);
+  document.getElementById('stStars').textContent=fmtN(G.stars);
+  document.getElementById('stPrestiges').textContent=fmtN(G.prestiges);
+  document.getElementById('stPlayTime').textContent=fmtTime(G.playTime);
+}
+function showStats(from){updStatsPage();showScreen('stats-screen',from)}
 
 // ══════════════ TOAST/CONFIRM ══════════════
 let toastT;
@@ -1321,6 +1380,7 @@ function initIcons(){
   const gt=document.querySelectorAll('.g-top button');
   if(gt[0])gt[0].innerHTML=IC.gear;
   if(gt[1])gt[1].innerHTML=IC.save;
+  if(gt[2])gt[2].innerHTML=IC.chart;
   // abilities removed
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
