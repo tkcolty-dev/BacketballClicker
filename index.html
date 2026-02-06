@@ -1050,7 +1050,7 @@ function doClick(cx,cy){
 
   G.combo++;if(G.combo>G.maxCombo)G.maxCombo=G.combo;
   clearTimeout(G.comboT);
-  G.comboT=setTimeout(()=>{G.combo=0;updCombo();checkFever(0)},5000);
+  G.comboT=setTimeout(()=>{G.combo=0;updCombo();checkFever(0)},3500);
   updCombo();checkFever(1);
 
   if(G.challenge)G.chClicks++;
