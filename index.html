@@ -699,6 +699,11 @@ power:'<svg viewBox="0 0 24 24"><polygon points="12,1 14,9 22,6 17,12 23,16 15,1
 clover:'<svg viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.8" fill="currentColor"/><circle cx="7.5" cy="13.5" r="3.8" fill="currentColor"/><circle cx="16.5" cy="13.5" r="3.8" fill="currentColor"/><path d="M12 12v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
 cart:'<svg viewBox="0 0 24 24"><path d="M6 6h15l-2.4 8.5a1 1 0 01-1 .7H9.4a1 1 0 01-1-.7L6 6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M1 2h3.5l1.2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="20" r="1.5" fill="currentColor"/><circle cx="17.5" cy="20" r="1.5" fill="currentColor"/></svg>',
 close:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+draft:'<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3.5" fill="currentColor"/><path d="M6 21v-4a6 6 0 0112 0v4" fill="currentColor"/><path d="M15 11l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+tv:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2" fill="currentColor"/><rect x="4" y="8" width="16" height="9" rx="1" fill="#0d1117"/><circle cx="12" cy="12.5" r="2.5" fill="currentColor" opacity=".7"/><path d="M8 3l4 3 4-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4.5" ry="9.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4 7.5h16M4 16.5h16" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>',
+legend:'<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="3" fill="currentColor"/><path d="M7 22v-6a5 5 0 0110 0v6" fill="currentColor"/><polygon points="12,12 13.5,15 17,15.5 14.5,17.5 15.2,21 12,19 8.8,21 9.5,17.5 7,15.5 10.5,15" fill="#ffcc44"/></svg>',
+rocket:'<svg viewBox="0 0 24 24"><path d="M12 2c-2 4-3 8-3 12l3 4 3-4c0-4-1-8-3-12z" fill="currentColor"/><path d="M9 14l-3 3 1 3 2-2M15 14l3 3-1 3-2-2" fill="currentColor" opacity=".7"/><circle cx="12" cy="10" r="2" fill="#0d1117"/><path d="M10 20l2 2 2-2" fill="currentColor" opacity=".5"/></svg>',
 };
 
 const UPS=[
@@ -712,6 +717,11 @@ const UPS=[
   {id:'star',  ic:'star',  nm:'All-Stars',       ds:'+50000/sec',       bc:25000000, tp:'a', pw:50000,gr:1},
   {id:'hof',   ic:'trophy',nm:'Hall of Fame',    ds:'+200c +150000/sec',bc:150000000,tp:'b', cp:200,ap:150000,gr:1},
   {id:'dyn',   ic:'crown', nm:'Dynasty',         ds:'+500k/sec',        bc:1000000000,tp:'a', pw:500000,gr:1},
+  {id:'draft', ic:'draft', nm:'#1 Draft Pick',   ds:'+1000/click',      bc:5000000000,tp:'c', pw:1000,gr:1},
+  {id:'tv',    ic:'tv',    nm:'TV Deal',          ds:'+2M/sec',          bc:25000000000,tp:'a', pw:2000000,gr:1},
+  {id:'league',ic:'globe', nm:'Global League',    ds:'+5000c +10M/sec',  bc:100000000000,tp:'b', cp:5000,ap:10000000,gr:1},
+  {id:'legend',ic:'legend',nm:'Basketball Legend', ds:'+50M/sec',        bc:500000000000,tp:'a', pw:50000000,gr:1},
+  {id:'slam',  ic:'rocket',nm:'Space Slam',       ds:'+25kc +250M/sec',  bc:2500000000000,tp:'b', cp:25000,ap:250000000,gr:1},
 ];
 const MILES=[100,500,1e3,5e3,1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7,1e8];
 
