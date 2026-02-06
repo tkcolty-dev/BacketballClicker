@@ -1253,7 +1253,9 @@ function buildUps(){
     g.appendChild(c);
   });
 }
+let _buyLock=false;
 function buyUp(u){
+  if(_buyLock)return;_buyLock=true;setTimeout(()=>_buyLock=false,80);
   const cost=upCost(u);if(G.score<cost)return;G.score-=cost;G.ups[u.id]=(G.ups[u.id]||0)+1;
   if(u.tp==='c')G.cpc+=u.pw;
   else if(u.tp==='a')G.ps+=u.pw;
