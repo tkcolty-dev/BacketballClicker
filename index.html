@@ -177,6 +177,7 @@
       display:flex;gap:16px;justify-content:center;
     }
     .score-stats span{color:var(--text-mid)}
+    .score-stats .ball-mult{color:var(--accent);font-weight:700}
 
     /* Buffs */
     .buffs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:18px;z-index:12;margin:6px 0 2px}
@@ -336,6 +337,8 @@
     }
     .product.enabled:active{transform:scale(.98);box-shadow:none}
     .product.locked{opacity:.35;cursor:not-allowed;filter:grayscale(.3)}
+    .product.gold{border:1.5px solid var(--gold);box-shadow:0 0 12px rgba(255,204,68,.15)}
+    .product.gold.enabled:hover{border-color:var(--gold);box-shadow:0 4px 20px rgba(255,204,68,.25)}
     @keyframes buyBounce{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
 
     .product .p-icon{
@@ -555,6 +558,7 @@
         <div>+<span id="cpcEl">1</span>/click</div>
         <div>+<span id="psEl">0</span>/sec</div>
         <div id="starLine" style="display:none"><span id="starEl">0</span></div>
+        <div id="ballMLine"><span id="ballMEl" class="ball-mult">x1.0</span> ball</div>
       </div>
     </div>
 
@@ -796,6 +800,7 @@ meteor:'<svg viewBox="0 0 24 24"><circle cx="17" cy="7" r="5" fill="currentColor
 atom:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" fill="currentColor"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(120 12 12)"/></svg>',
 infinity:'<svg viewBox="0 0 24 24"><path d="M12 12c-2-3-4.5-5-7-5a4 4 0 000 8c2.5 0 5-2 7-5 2 3 4.5 5 7 5a4 4 0 000-8c-2.5 0-5 2-7 5z" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
 portal:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 3c3 2 3 6 0 9M12 21c-3-2-3-6 0-9" stroke="currentColor" stroke-width="1.3" fill="none" opacity=".5"/></svg>',
+montage:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="currentColor"/><rect x="4" y="6" width="16" height="12" rx="1" fill="#0d1117"/><polygon points="10,9 10,15 16,12" fill="currentColor"/><circle cx="18" cy="7" r="2.5" fill="#ffcc44" stroke="currentColor" stroke-width="1"/></svg>',
 };
 
 const UPS=[
@@ -830,6 +835,7 @@ const UPS=[
   {id:'qcrt',  ic:'atom',  nm:'Quantum Court',    ds:'+20B/sec',         bc:500000000000000,tp:'a', pw:20000000000,gr:1},
   {id:'infin', ic:'infinity',nm:'Infinity Hoop',  ds:'+200M/click',      bc:2000000000000000,tp:'c', pw:200000000,gr:1},
   {id:'multi', ic:'portal',nm:'Multiverse League', ds:'+2Mc +200B/sec',  bc:7000000000000000,tp:'b', cp:2000000,ap:200000000000,gr:1},
+  {id:'wmontage',ic:'montage',nm:'Winners Montage',ds:'+80B/click',      bc:18000000000000000,tp:'c', pw:80000000000,gr:1,gl:1},
 ];
 const MILES=[100,500,1e3,5e3,1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7,1e8];
 
@@ -1036,7 +1042,7 @@ function doClick(cx,cy){
   const pwM=G.powerShot?100:1;
   if(G.powerShot)G.powerShot=false;
 
-  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM);
+  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult());
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
@@ -1300,7 +1306,7 @@ function buildUps(){
     const lv=G.ups[u.id]||0,cost=upCost(u),canBuy=G.score>=cost;
     const progress=Math.min(G.score/cost,1);
     const c=document.createElement('div');
-    c.className='product'+(canBuy?' enabled':' locked');
+    c.className='product'+(canBuy?' enabled':' locked')+(u.gl?' gold':'');
     c.innerHTML=`<div class="p-icon">${IC[u.ic]}</div><div class="p-body"><div class="p-top"><span class="p-name">${u.nm}</span><span class="p-lv">${lv?'Lv.'+lv:''}</span></div><div class="p-desc">${u.ds}</div><div class="p-bottom"><span class="p-price ${canBuy?'can-afford':'cant-afford'}">${IC.mini}${fmtN(cost)}</span><div class="p-bar"><div class="p-bar-fill" style="width:${canBuy?100:progress*100}%"></div></div></div></div>`;
     if(canBuy)c.addEventListener('pointerdown',e=>{e.preventDefault();buyUp(u)},{passive:false});
     g.appendChild(c);
@@ -1371,10 +1377,12 @@ function doPrestige(){
 }
 
 // ══════════════ DISPLAY ══════════════
+function ballMult(){return 1+Math.floor(G.clicks/50)*0.1}
 function updStats(){
   document.getElementById('psEl').textContent=fmtN(G.ps);
   document.getElementById('cpcEl').textContent=fmtN(G.cpc);
   if(G.stars>0){document.getElementById('starLine').style.display='';document.getElementById('starEl').textContent=G.stars}
+  document.getElementById('ballMEl').textContent='x'+ballMult().toFixed(1);
 }
 function fmtN(n){
   if(n>=1e15)return(n/1e15).toFixed(2)+'Q';if(n>=1e12)return(n/1e12).toFixed(2)+'T';
