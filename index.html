@@ -447,6 +447,11 @@
     .modal .btns{display:flex;gap:10px;justify-content:center;margin-top:16px}
     .modal .highlight{color:var(--green);font-size:15px;font-weight:700;margin:10px 0}
     .modal .stars-display{font-size:34px;margin:10px 0}
+    .modal-icon{width:60px;height:60px;margin:0 auto 8px;filter:drop-shadow(0 0 20px rgba(255,140,0,.5))}
+    .modal-divider{
+      width:clamp(80px,40%,160px);height:2px;margin:14px auto;border-radius:2px;
+      background:linear-gradient(90deg,transparent,rgba(255,140,0,.5),var(--accent),rgba(255,140,0,.5),transparent);
+    }
 
     /* Settings */
     #settings-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
@@ -655,11 +660,14 @@
 </div>
 <div class="overlay" id="newGameOv">
   <div class="modal">
+    <div class="modal-icon" id="newGameIcon"></div>
     <h3>Start New Game?</h3>
     <p>Your current save will be permanently lost.</p>
+    <div class="highlight" id="newGameStats"></div>
+    <div class="modal-divider"></div>
     <div class="btns">
       <button class="btn btn-sm btn-ghost" onclick="hideNewGameConfirm()">Cancel</button>
-      <button class="btn btn-sm btn-danger" onclick="doNewGame()">New Game</button>
+      <button class="btn btn-sm" onclick="doNewGame()">New Game</button>
     </div>
   </div>
 </div>
@@ -951,7 +959,12 @@ function newGame(){
   resetState();startGame();
 }
 function doNewGame(){hideNewGameConfirm();resetState();startGame()}
-function showNewGameConfirm(){document.getElementById('newGameOv').classList.add('on')}
+function showNewGameConfirm(){
+  try{const d=JSON.parse(localStorage.getItem('bball3')),g=d.g;
+    document.getElementById('newGameStats').innerHTML=IC.mini+' '+fmtN(g.total||0)+' pts &nbsp;|&nbsp; '+fmtN(g.clicks||0)+' shots';
+  }catch(x){document.getElementById('newGameStats').innerHTML='';}
+  document.getElementById('newGameOv').classList.add('on');
+}
 function hideNewGameConfirm(){document.getElementById('newGameOv').classList.remove('on')}
 function continueGame(){loadGame();buildUps();updStats();startGame();toast('Save Loaded!')}
 function updTitle(){
@@ -1440,6 +1453,7 @@ function initIcons(){
   // abilities removed
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
+  document.getElementById('newGameIcon').innerHTML=IC.ball;
 }
 
 // ══════════════ INIT ══════════════
