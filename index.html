@@ -471,13 +471,13 @@
       background:linear-gradient(90deg,transparent,var(--accent),transparent);
     }
     .srow{
-      display:flex;justify-content:space-between;align-items:center;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
       padding:12px 14px;margin:4px 0;border-radius:12px;
       background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);
       transition:background .15s;
     }
     .srow:hover{background:rgba(255,255,255,.04)}
-    .srow label{font-size:13px;color:var(--text-mid);font-weight:600}
+    .srow label{font-size:13px;color:var(--text-mid);font-weight:600;flex:1}
     .srow label small{display:block;font-size:10px;color:var(--text-dim);margin-top:2px;font-weight:400}
     .tog{
       width:46px;height:26px;background:rgba(255,255,255,.08);border-radius:13px;
@@ -496,6 +496,12 @@
       color:var(--gold);font-weight:700;font-size:14px;text-align:right;
       font-variant-numeric:tabular-nums;
     }
+    .stat-val.green{color:var(--green)}
+    .stat-val.accent{color:var(--accent)}
+    .sbox-icon{width:48px;height:48px;margin:0 auto 4px;color:var(--gold);filter:drop-shadow(0 0 16px rgba(255,140,0,.35))}
+    .srow-icon{width:22px;height:22px;flex-shrink:0;color:var(--accent);opacity:.7}
+    .section-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin:16px 0 4px 4px;font-weight:600}
+    .section-label:first-of-type{margin-top:0}
 
     /* Toast */
     .toast{
@@ -581,13 +587,17 @@
 <!-- SETTINGS -->
 <div id="settings-screen" class="screen hidden">
   <div class="sbox">
+    <div class="sbox-icon" id="settingsIcon"></div>
     <h2>Settings</h2>
     <div class="sbox-divider"></div>
-    <div class="srow"><label>Particles<small>Click effects</small></label><div class="tog on" id="tPart" onclick="togSet(this,'particles')"></div></div>
-    <div class="srow"><label>Screen Shake<small>Impact feel</small></label><div class="tog on" id="tShake" onclick="togSet(this,'shake')"></div></div>
-    <div class="srow"><label>Sound<small>Audio effects</small></label><div class="tog on" id="tSound" onclick="togSet(this,'sound')"></div></div>
-    <div class="srow"><label>Auto-Save<small>Every 30s</small></label><div class="tog on" id="tAuto" onclick="togSet(this,'autosave')"></div></div>
-    <div class="srow"><label>Court Glow<small>Lighting</small></label><input type="range" class="slider" id="sGlow" min="0" max="100" value="60" oninput="S.courtGlow=this.value/100"></div>
+    <div class="section-label">Gameplay</div>
+    <div class="srow"><div class="srow-icon" id="siPart"></div><label>Particles<small>Click effects</small></label><div class="tog on" id="tPart" onclick="togSet(this,'particles')"></div></div>
+    <div class="srow"><div class="srow-icon" id="siShake"></div><label>Screen Shake<small>Impact feel</small></label><div class="tog on" id="tShake" onclick="togSet(this,'shake')"></div></div>
+    <div class="srow"><div class="srow-icon" id="siSound"></div><label>Sound<small>Audio effects</small></label><div class="tog on" id="tSound" onclick="togSet(this,'sound')"></div></div>
+    <div class="section-label">Display</div>
+    <div class="srow"><div class="srow-icon" id="siAuto"></div><label>Auto-Save<small>Every 30s</small></label><div class="tog on" id="tAuto" onclick="togSet(this,'autosave')"></div></div>
+    <div class="srow"><div class="srow-icon" id="siGlow"></div><label>Court Glow<small>Lighting</small></label><input type="range" class="slider" id="sGlow" min="0" max="100" value="60" oninput="S.courtGlow=this.value/100"></div>
+    <div class="sbox-divider" style="margin-top:18px"></div>
     <div class="sbtns">
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
       <button class="btn btn-sm" onclick="showPrestige()">Prestige</button>
@@ -599,18 +609,22 @@
 <!-- Stats -->
 <div id="stats-screen" class="screen hidden">
   <div class="sbox">
+    <div class="sbox-icon" id="statsIcon"></div>
     <h2>Stats</h2>
     <div class="sbox-divider"></div>
-    <div class="srow"><label>Total Points Earned</label><span class="stat-val" id="stTotalEarned">0</span></div>
-    <div class="srow"><label>Highest Score</label><span class="stat-val" id="stBestScore">0</span></div>
-    <div class="srow"><label>Total Clicks</label><span class="stat-val" id="stClicks">0</span></div>
-    <div class="srow"><label>Best Combo</label><span class="stat-val" id="stMaxCombo">0</span></div>
-    <div class="srow"><label>Points/Click</label><span class="stat-val" id="stCpc">0</span></div>
-    <div class="srow"><label>Points/Sec</label><span class="stat-val" id="stPs">0</span></div>
-    <div class="srow"><label>Upgrades Owned</label><span class="stat-val" id="stUps">0</span></div>
-    <div class="srow"><label>Stars Earned</label><span class="stat-val" id="stStars">0</span></div>
-    <div class="srow"><label>Prestiges</label><span class="stat-val" id="stPrestiges">0</span></div>
-    <div class="srow"><label>Time Played</label><span class="stat-val" id="stPlayTime">0s</span></div>
+    <div class="section-label">Performance</div>
+    <div class="srow"><div class="srow-icon" id="xiTotal"></div><label>Total Points Earned</label><span class="stat-val" id="stTotalEarned">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiBest"></div><label>Highest Score</label><span class="stat-val" id="stBestScore">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiClicks"></div><label>Total Clicks</label><span class="stat-val" id="stClicks">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiCombo"></div><label>Best Combo</label><span class="stat-val" id="stMaxCombo">0</span></div>
+    <div class="section-label">Rates</div>
+    <div class="srow"><div class="srow-icon" id="xiCpc"></div><label>Points/Click</label><span class="stat-val green" id="stCpc">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiPs"></div><label>Points/Sec</label><span class="stat-val green" id="stPs">0</span></div>
+    <div class="section-label">Progress</div>
+    <div class="srow"><div class="srow-icon" id="xiUps"></div><label>Upgrades Owned</label><span class="stat-val" id="stUps">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiStars"></div><label>Stars Earned</label><span class="stat-val" id="stStars">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiPrest"></div><label>Prestiges</label><span class="stat-val" id="stPrestiges">0</span></div>
+    <div class="srow"><div class="srow-icon" id="xiTime"></div><label>Time Played</label><span class="stat-val accent" id="stPlayTime">0s</span></div>
     <div class="sbtns">
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
@@ -1454,6 +1468,25 @@ function initIcons(){
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
   document.getElementById('newGameIcon').innerHTML=IC.ball;
+  // Settings icons
+  document.getElementById('settingsIcon').innerHTML=IC.gear;
+  document.getElementById('siPart').innerHTML=IC.fire;
+  document.getElementById('siShake').innerHTML=IC.bolt;
+  document.getElementById('siSound').innerHTML=IC.fans;
+  document.getElementById('siAuto').innerHTML=IC.save;
+  document.getElementById('siGlow').innerHTML=IC.court;
+  // Stats icons
+  document.getElementById('statsIcon').innerHTML=IC.chart;
+  document.getElementById('xiTotal').innerHTML=IC.money;
+  document.getElementById('xiBest').innerHTML=IC.trophy;
+  document.getElementById('xiClicks').innerHTML=IC.ball;
+  document.getElementById('xiCombo').innerHTML=IC.fire;
+  document.getElementById('xiCpc').innerHTML=IC.bolt;
+  document.getElementById('xiPs').innerHTML=IC.rocket;
+  document.getElementById('xiUps').innerHTML=IC.cart;
+  document.getElementById('xiStars').innerHTML=IC.star;
+  document.getElementById('xiPrest').innerHTML=IC.crown;
+  document.getElementById('xiTime').innerHTML=IC.whistle;
 }
 
 // ══════════════ INIT ══════════════
