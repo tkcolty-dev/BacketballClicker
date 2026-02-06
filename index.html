@@ -451,14 +451,29 @@
     /* Settings */
     #settings-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
     .sbox{
-      background:linear-gradient(135deg,rgba(25,15,5,.97),rgba(15,8,2,.97));
-      border-radius:24px;padding:28px 32px;width:90%;max-width:420px;max-height:85vh;overflow-y:auto;
-      box-shadow:0 16px 60px rgba(0,0,0,.5),0 0 0 1px var(--panel-border);
+      background:linear-gradient(160deg,rgba(28,18,8,.97),rgba(14,9,3,.98));
+      border-radius:28px;padding:32px 28px 24px;width:90%;max-width:420px;max-height:85vh;overflow-y:auto;
+      box-shadow:0 20px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,140,0,.08),inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .sbox h2{font-size:20px;color:var(--gold);text-align:center;letter-spacing:2px;margin-bottom:18px;text-shadow:0 2px 0 rgba(100,60,0,.4)}
-    .srow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.03)}
-    .srow label{font-size:14px;color:var(--text-mid)}
-    .srow label small{display:block;font-size:10px;color:var(--text-dim);margin-top:2px}
+    .sbox::-webkit-scrollbar{width:4px}
+    .sbox::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:4px}
+    .sbox h2{
+      font-size:18px;color:var(--gold);text-align:center;letter-spacing:4px;text-transform:uppercase;
+      margin-bottom:6px;text-shadow:0 2px 0 rgba(100,60,0,.4);
+    }
+    .sbox-divider{
+      width:60px;height:2px;margin:0 auto 20px;border-radius:2px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    }
+    .srow{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 14px;margin:4px 0;border-radius:12px;
+      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);
+      transition:background .15s;
+    }
+    .srow:hover{background:rgba(255,255,255,.04)}
+    .srow label{font-size:13px;color:var(--text-mid);font-weight:600}
+    .srow label small{display:block;font-size:10px;color:var(--text-dim);margin-top:2px;font-weight:400}
     .tog{
       width:46px;height:26px;background:rgba(255,255,255,.08);border-radius:13px;
       position:relative;cursor:pointer;transition:background .25s;
@@ -468,11 +483,14 @@
     .tog.on::after{transform:translateX(20px)}
     .slider{-webkit-appearance:none;width:120px;height:4px;border-radius:4px;background:rgba(255,255,255,.08);outline:none}
     .slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px var(--accent-glow)}
-    .sbtns{display:flex;gap:10px;margin-top:20px;justify-content:center;flex-wrap:wrap}
+    .sbtns{display:flex;gap:10px;margin-top:22px;justify-content:center;flex-wrap:wrap}
 
     /* Stats screen */
     #stats-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
-    .stat-val{color:var(--gold);font-weight:700;font-size:14px;text-align:right}
+    .stat-val{
+      color:var(--gold);font-weight:700;font-size:14px;text-align:right;
+      font-variant-numeric:tabular-nums;
+    }
 
     /* Toast */
     .toast{
@@ -559,6 +577,7 @@
 <div id="settings-screen" class="screen hidden">
   <div class="sbox">
     <h2>Settings</h2>
+    <div class="sbox-divider"></div>
     <div class="srow"><label>Particles<small>Click effects</small></label><div class="tog on" id="tPart" onclick="togSet(this,'particles')"></div></div>
     <div class="srow"><label>Screen Shake<small>Impact feel</small></label><div class="tog on" id="tShake" onclick="togSet(this,'shake')"></div></div>
     <div class="srow"><label>Sound<small>Audio effects</small></label><div class="tog on" id="tSound" onclick="togSet(this,'sound')"></div></div>
@@ -576,6 +595,7 @@
 <div id="stats-screen" class="screen hidden">
   <div class="sbox">
     <h2>Stats</h2>
+    <div class="sbox-divider"></div>
     <div class="srow"><label>Total Points Earned</label><span class="stat-val" id="stTotalEarned">0</span></div>
     <div class="srow"><label>Highest Score</label><span class="stat-val" id="stBestScore">0</span></div>
     <div class="srow"><label>Total Clicks</label><span class="stat-val" id="stClicks">0</span></div>
