@@ -936,7 +936,10 @@ function drawFx(){
 function showScreen(id,from){if(from)retTo=from;document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='title-screen')updTitle()}
 function goBack(){showScreen(retTo==='game'?'game-screen':'title-screen')}
 function startGame(){showScreen('game-screen');sndBounce()}
-function newGame(){resetState();startGame()}
+function newGame(){
+  if(localStorage.getItem('bball3')&&!confirm('Start a new game? Your current save will be lost!')){return}
+  resetState();startGame();
+}
 function continueGame(){loadGame();buildUps();updStats();startGame();toast('Save Loaded!')}
 function updTitle(){
   const e=document.getElementById('titleStats');
