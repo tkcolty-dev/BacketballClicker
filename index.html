@@ -1131,7 +1131,7 @@ function hideGolden(){G.golden=false;document.getElementById('goldenEl').classLi
 function clickGolden(){
   if(!G.golden)return;
   const r=Math.random();
-  if(r<.3){const b=Math.max(~~(G.cpc*50+G.ps*30),100);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;toast('GOLDEN! +'+fmtN(b));}
+  if(r<.3){const b=Math.max(Math.floor(G.cpc*50+G.ps*30),100);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;toast('GOLDEN! +'+fmtN(b));}
   else if(r<.6){addBuff('frenzy',7,77000);toast('GOLDEN FRENZY! x7 for 77s!');}
   else if(r<.85){addBuff('cf',777,13000);toast('CLICK FRENZY! x777 for 13s!');}
   else{addBuff('ss',3,10000);toast('SHOOTING STARS! x3 auto 10s!');}
@@ -1262,7 +1262,7 @@ setInterval(()=>{
   if(G.ps>0){
     const now=Date.now();let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
-    const tot=~~(G.ps*am*(1+G.stars*.05)*(G.fever?2:1));
+    const tot=Math.floor(G.ps*am*(1+G.stars*.05)*(G.fever?2:1));
     G.score+=tot;G.total+=tot;G.totalEarned+=tot;if(G.score>G.bestScore)G.bestScore=G.score;
     updStats();checkMiles();
     if(Date.now()-tUpd>500){tUpd=Date.now();updUps()}
@@ -1270,7 +1270,7 @@ setInterval(()=>{
 },1000);
 
 // ══════════════ PRESTIGE ══════════════
-function calcStars(){return Math.max(0,~~(Math.pow(G.total/5e4,1/3)))}
+function calcStars(){return Math.max(0,Math.floor(Math.pow(G.total/5e4,1/3)))}
 function showPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);
   document.getElementById('pStars').innerHTML=IC.starMini+' '+G.stars+(earn>0?' (+'+earn+')':'');
@@ -1305,7 +1305,7 @@ function updStats(){
 function fmtN(n){
   if(n>=1e15)return(n/1e15).toFixed(2)+'Q';if(n>=1e12)return(n/1e12).toFixed(2)+'T';
   if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';
-  if(n>=1e4)return(n/1e3).toFixed(1)+'K';return(~~n).toLocaleString();
+  if(n>=1e4)return(n/1e3).toFixed(1)+'K';return Math.floor(n).toLocaleString();
 }
 
 // ══════════════ SETTINGS ══════════════
