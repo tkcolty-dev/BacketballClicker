@@ -653,6 +653,16 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="newGameOv">
+  <div class="modal">
+    <h3>Start New Game?</h3>
+    <p>Your current save will be permanently lost.</p>
+    <div class="btns">
+      <button class="btn btn-sm btn-ghost" onclick="hideNewGameConfirm()">Cancel</button>
+      <button class="btn btn-sm btn-danger" onclick="doNewGame()">New Game</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════ AUDIO ══════════════
@@ -937,9 +947,12 @@ function showScreen(id,from){if(from)retTo=from;document.querySelectorAll('.scre
 function goBack(){showScreen(retTo==='game'?'game-screen':'title-screen')}
 function startGame(){showScreen('game-screen');sndBounce()}
 function newGame(){
-  if(localStorage.getItem('bball3')&&!confirm('Start a new game? Your current save will be lost!')){return}
+  if(localStorage.getItem('bball3')){showNewGameConfirm();return}
   resetState();startGame();
 }
+function doNewGame(){hideNewGameConfirm();resetState();startGame()}
+function showNewGameConfirm(){document.getElementById('newGameOv').classList.add('on')}
+function hideNewGameConfirm(){document.getElementById('newGameOv').classList.remove('on')}
 function continueGame(){loadGame();buildUps();updStats();startGame();toast('Save Loaded!')}
 function updTitle(){
   const e=document.getElementById('titleStats');
