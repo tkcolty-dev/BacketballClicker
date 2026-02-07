@@ -506,6 +506,21 @@
     .section-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin:16px 0 4px 4px;font-weight:600}
     .section-label:first-of-type{margin-top:0}
 
+    /* Leaderboard */
+    #lb-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+    .lb-list{margin:4px 0 0;max-height:340px;overflow-y:auto}
+    .lb-list::-webkit-scrollbar{width:4px}
+    .lb-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:4px}
+    .lb-entry{
+      display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;border-radius:12px;
+      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);transition:background .15s;
+    }
+    .lb-entry:hover{background:rgba(255,255,255,.04)}
+    .lb-rank{width:26px;font-size:15px;font-weight:800;text-align:center;flex-shrink:0}
+    .lb-rank.gold{color:#ffcc44}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
+    .lb-name{flex:1;font-size:13px;font-weight:600;color:var(--text-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lb-score{font-size:13px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+    .lb-empty{color:var(--text-dim);font-size:13px;text-align:center;padding:30px 0}
     /* Toast */
     .toast{
       position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px) scale(.9);
@@ -549,6 +564,7 @@
       <button onclick="showScreen('settings-screen','game')"></button>
       <button onclick="saveGame();toast('Saved!')"></button>
       <button onclick="showStats('game')"></button>
+      <button onclick="showLb('game')"></button>
     </div>
 
     <div class="score-wrap">
@@ -634,6 +650,22 @@
     </div>
   </div>
 </div>
+
+<!-- Leaderboard -->
+<div id="lb-screen" class="screen hidden">
+  <div class="sbox">
+    <div class="sbox-icon" id="lbIcon"></div>
+    <h2>Leaderboard</h2>
+    <div class="sbox-divider"></div>
+    <div class="section-label">Top Scores</div>
+    <div class="lb-list" id="lbList"></div>
+    <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
+      <button class="btn btn-sm btn-danger" onclick="clearLb()">Clear</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Golden -->
 <div class="golden" id="goldenEl">
@@ -801,6 +833,7 @@ atom:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" fill="currentColo
 infinity:'<svg viewBox="0 0 24 24"><path d="M12 12c-2-3-4.5-5-7-5a4 4 0 000 8c2.5 0 5-2 7-5 2 3 4.5 5 7 5a4 4 0 000-8c-2.5 0-5 2-7 5z" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
 portal:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 3c3 2 3 6 0 9M12 21c-3-2-3-6 0-9" stroke="currentColor" stroke-width="1.3" fill="none" opacity=".5"/></svg>',
 montage:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="currentColor"/><rect x="4" y="6" width="16" height="12" rx="1" fill="#0d1117"/><polygon points="10,9 10,15 16,12" fill="currentColor"/><circle cx="18" cy="7" r="2.5" fill="#ffcc44" stroke="currentColor" stroke-width="1"/></svg>',
+leaderboard:'<svg viewBox="0 0 24 24"><rect x="3" y="14" width="5" height="7" rx="1" fill="currentColor"/><rect x="9.5" y="8" width="5" height="13" rx="1" fill="currentColor"/><rect x="16" y="11" width="5" height="10" rx="1" fill="currentColor"/><circle cx="12" cy="4.5" r="2.5" fill="#ffcc44"/></svg>',
 };
 
 const UPS=[
@@ -1374,6 +1407,7 @@ function doPrestige(){
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
   addFirework(fCan.width/2,fCan.height/2);addFirework(fCan.width*.3,fCan.height/2);addFirework(fCan.width*.7,fCan.height/2);
   sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+st*5+'% bonus)');
+  lbAutoPost();
 }
 
 // ══════════════ DISPLAY ══════════════
@@ -1401,6 +1435,7 @@ function saveGame(){
       bestScore:G.bestScore,totalEarned:G.totalEarned,prestiges:G.prestiges,startTime:G.startTime,playTime:G.playTime},
     s:S,v:3,t:Date.now()
   }));
+  lbAutoPost();
 }
 function loadGame(){
   const r=localStorage.getItem('bball3');if(!r)return 0;
@@ -1482,6 +1517,7 @@ function initIcons(){
   if(gt[0])gt[0].innerHTML=IC.gear;
   if(gt[1])gt[1].innerHTML=IC.save;
   if(gt[2])gt[2].innerHTML=IC.chart;
+  if(gt[3])gt[3].innerHTML=IC.leaderboard;
   // abilities removed
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
@@ -1505,7 +1541,46 @@ function initIcons(){
   document.getElementById('xiStars').innerHTML=IC.star;
   document.getElementById('xiPrest').innerHTML=IC.crown;
   document.getElementById('xiTime').innerHTML=IC.whistle;
+  document.getElementById('lbIcon').innerHTML=IC.leaderboard;
 }
+
+// ══════════════ LEADERBOARD ══════════════
+const LB_KEY='bball3_lb';
+const playerName='player'+String(1000+~~(Math.random()*9000));
+
+function getLb(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[]}catch(e){return[]}}
+function saveLb(lb){localStorage.setItem(LB_KEY,JSON.stringify(lb))}
+
+function lbAutoPost(){
+  const lb=getLb(),score=G.bestScore||G.total;
+  if(score<=0)return;
+  const existing=lb.find(e=>e.name===playerName);
+  if(existing){
+    if(score<=existing.score)return;
+    existing.score=score;existing.date=Date.now();
+  }else{
+    lb.push({name:playerName,score,date:Date.now()});
+  }
+  lb.sort((a,b)=>b.score-a.score);
+  if(lb.length>20)lb.length=20;
+  saveLb(lb);
+}
+
+function clearLb(){
+  localStorage.removeItem(LB_KEY);renderLb();toast('Leaderboard cleared!')
+}
+
+function renderLb(){
+  const lb=getLb(),el=document.getElementById('lbList');
+  if(!lb.length){el.innerHTML='<div class="lb-empty">No scores yet. Play to post!</div>';return}
+  el.innerHTML=lb.map((e,i)=>{
+    const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const medal=i===0?IC.trophyMini:'';
+    return `<div class="lb-entry"><span class="lb-rank ${rc}">${medal||'#'+(i+1)}</span><span class="lb-name">${e.name.replace(/</g,'&lt;')}</span><span class="lb-score">${IC.mini}${fmtN(e.score)}</span></div>`;
+  }).join('');
+}
+
+function showLb(from){lbAutoPost();renderLb();showScreen('lb-screen',from)}
 
 // ══════════════ INIT ══════════════
 resize();drawFx();animScore();
