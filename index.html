@@ -521,6 +521,37 @@
     .lb-name{flex:1;font-size:13px;font-weight:600;color:var(--text-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .lb-score{font-size:13px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
     .lb-empty{color:var(--text-dim);font-size:13px;text-align:center;padding:30px 0}
+    /* Ball Skins */
+    #skins-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+    .skins-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 0;
+      max-height:340px;overflow-y:auto;padding:2px;
+    }
+    .skins-grid::-webkit-scrollbar{width:4px}
+    .skins-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:4px}
+    .skin-card{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      padding:12px 6px 10px;border-radius:14px;cursor:pointer;
+      background:rgba(255,255,255,.02);border:2px solid rgba(255,255,255,.04);
+      transition:all .18s cubic-bezier(.34,1.56,.64,1);position:relative;
+    }
+    .skin-card:hover{background:rgba(255,255,255,.06);transform:translateY(-2px)}
+    .skin-card:active{transform:scale(.95)}
+    .skin-card.active{border-color:var(--accent);box-shadow:0 0 16px rgba(255,140,0,.2)}
+    .skin-card.locked{opacity:.35;cursor:not-allowed;filter:grayscale(.5)}
+    .skin-card.locked:hover{transform:none;background:rgba(255,255,255,.02)}
+    .skin-preview{width:56px;height:56px}
+    .skin-preview svg{width:100%;height:100%}
+    .skin-name{font-size:11px;font-weight:700;color:#fff;text-align:center}
+    .skin-req{font-size:9px;color:var(--text-dim);display:flex;align-items:center;gap:3px}
+    .skin-req svg{width:10px;height:10px}
+    .skin-lock{
+      position:absolute;top:6px;right:6px;width:14px;height:14px;color:var(--text-dim);opacity:.6;
+    }
+    .skin-lock svg{width:100%;height:100%}
+    .skin-mult{font-size:10px;font-weight:700;color:var(--green);margin-bottom:-2px}
+    .skin-equipped{font-size:8px;color:var(--accent);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+
     /* Toast */
     .toast{
       position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px) scale(.9);
@@ -565,6 +596,7 @@
       <button onclick="saveGame();toast('Saved!')"></button>
       <button onclick="showStats('game')"></button>
       <button onclick="showLb('game')"></button>
+      <button onclick="showSkins('game')" id="skinBtn"></button>
     </div>
 
     <div class="score-wrap">
@@ -575,6 +607,7 @@
         <div>+<span id="psEl">0</span>/sec</div>
         <div id="starLine" style="display:none"><span id="starEl">0</span></div>
         <div id="ballMLine"><span id="ballMEl" class="ball-mult">x1.0</span> ball</div>
+        <div id="skinMLine" style="display:none"><span id="skinMEl" class="ball-mult">x1</span> skin</div>
       </div>
     </div>
 
@@ -667,6 +700,20 @@
 </div>
 
 
+<!-- Ball Skins -->
+<div id="skins-screen" class="screen hidden">
+  <div class="sbox">
+    <div class="sbox-icon" id="skinsIcon"></div>
+    <h2>Ball Skins</h2>
+    <div class="sbox-divider"></div>
+    <div class="section-label">Unlock with Prestige Stars</div>
+    <div class="skins-grid" id="skinsGrid"></div>
+    <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
+    </div>
+  </div>
+</div>
+
 <!-- Golden -->
 <div class="golden" id="goldenEl">
   <div class="golden-ball" id="goldenBall"></div>
@@ -687,7 +734,7 @@
   <div class="modal">
     <h3>PRESTIGE</h3>
     <div class="stars-display" id="pStars">0</div>
-    <p>Retire for <strong>Legacy Stars</strong>. Each star gives +5% to ALL earnings permanently.</p>
+    <p>Retire for <strong>Legacy Stars</strong>. Each star gives +3% to ALL earnings permanently.</p>
     <div class="highlight" id="pBonus">+0 new stars</div>
     <p id="pCurrent"></p>
     <div class="btns">
@@ -834,6 +881,8 @@ infinity:'<svg viewBox="0 0 24 24"><path d="M12 12c-2-3-4.5-5-7-5a4 4 0 000 8c2.
 portal:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 3c3 2 3 6 0 9M12 21c-3-2-3-6 0-9" stroke="currentColor" stroke-width="1.3" fill="none" opacity=".5"/></svg>',
 montage:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="currentColor"/><rect x="4" y="6" width="16" height="12" rx="1" fill="#0d1117"/><polygon points="10,9 10,15 16,12" fill="currentColor"/><circle cx="18" cy="7" r="2.5" fill="#ffcc44" stroke="currentColor" stroke-width="1"/></svg>',
 leaderboard:'<svg viewBox="0 0 24 24"><rect x="3" y="14" width="5" height="7" rx="1" fill="currentColor"/><rect x="9.5" y="8" width="5" height="13" rx="1" fill="currentColor"/><rect x="16" y="11" width="5" height="10" rx="1" fill="currentColor"/><circle cx="12" cy="4.5" r="2.5" fill="#ffcc44"/></svg>',
+paint:'<svg viewBox="0 0 24 24"><path d="M20 4H4a1 1 0 00-1 1v4a1 1 0 001 1h16a1 1 0 001-1V5a1 1 0 00-1-1z" fill="currentColor"/><path d="M15 10v2a3 3 0 01-6 0v-2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="10" y="14" width="4" height="6" rx="1" fill="currentColor"/></svg>',
+lock:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V7a4 4 0 018 0v4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
 };
 
 const UPS=[
@@ -940,8 +989,9 @@ function addFallingBalls(n){
 function drawBall(ctx,x,y,r,rot,alpha){
   ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=alpha;
   ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);
+  const sk=getActiveSkin(),sc=sk.colors;
   const g=ctx.createRadialGradient(-r*.25,-r*.25,r*.1,0,0,r);
-  g.addColorStop(0,'#ffad5c');g.addColorStop(.4,'#ee8528');g.addColorStop(1,'#b35a10');
+  g.addColorStop(0,sc[0]);g.addColorStop(.4,sc[1]);g.addColorStop(1,sc[2]);
   ctx.fillStyle=g;ctx.fill();
   ctx.save();ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.clip();
   ctx.strokeStyle='#1a1a1a';ctx.lineWidth=r*.06;
@@ -1071,11 +1121,11 @@ function doClick(cx,cy){
   let bClick=1,bAll=1;
   G.buffs.forEach(b=>{if(now<b.end){if(b.tp==='cf')bClick*=b.m;else bAll*=b.m}});
   const fM=G.fever?2:1;
-  const pM=1+G.stars*.05;
+  const pM=1+G.stars*.03;
   const pwM=G.powerShot?100:1;
   if(G.powerShot)G.powerShot=false;
 
-  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult());
+  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult());
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
@@ -1375,7 +1425,7 @@ setInterval(()=>{
   if(G.ps>0){
     const now=Date.now();let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
-    const tot=Math.floor(G.ps*am*(1+G.stars*.05)*(G.fever?2:1));
+    const tot=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult());
     G.score+=tot;G.total+=tot;G.totalEarned+=tot;if(G.score>G.bestScore)G.bestScore=G.score;
     updStats();checkMiles();
     if(Date.now()-tUpd>500){tUpd=Date.now();updUps()}
@@ -1388,7 +1438,7 @@ function showPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);
   document.getElementById('pStars').innerHTML=IC.starMini+' '+G.stars+(earn>0?' (+'+earn+')':'');
   document.getElementById('pBonus').textContent=earn>0?'+'+earn+' new stars':'No new stars yet';
-  document.getElementById('pCurrent').textContent='Bonus: +'+G.stars*5+'% → +'+(G.stars+earn)*5+'%';
+  document.getElementById('pCurrent').textContent='Bonus: +'+G.stars*3+'% → +'+(G.stars+earn)*3+'%';
   document.getElementById('pBtn').style.opacity=earn>0?1:.4;
   document.getElementById('prestigeOv').classList.add('on');
 }
@@ -1406,7 +1456,7 @@ function doPrestige(){
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
   addFirework(fCan.width/2,fCan.height/2);addFirework(fCan.width*.3,fCan.height/2);addFirework(fCan.width*.7,fCan.height/2);
-  sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+st*5+'% bonus)');
+  sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+st*3+'% bonus)');
   lbAutoPost();
 }
 
@@ -1417,6 +1467,9 @@ function updStats(){
   document.getElementById('cpcEl').textContent=fmtN(G.cpc);
   if(G.stars>0){document.getElementById('starLine').style.display='';document.getElementById('starEl').textContent=G.stars}
   document.getElementById('ballMEl').textContent='x'+ballMult().toFixed(1);
+  const sm=skinMult();
+  if(sm>1){document.getElementById('skinMLine').style.display='';document.getElementById('skinMEl').textContent='x'+sm}
+  else{document.getElementById('skinMLine').style.display='none'}
 }
 function fmtN(n){
   if(n>=1e15)return(n/1e15).toFixed(2)+'Q';if(n>=1e12)return(n/1e12).toFixed(2)+'T';
@@ -1453,6 +1506,7 @@ function loadGame(){
       document.getElementById('tSound').classList.toggle('on',S.sound);
       document.getElementById('tAuto').classList.toggle('on',S.autosave);
       document.getElementById('sGlow').value=(S.courtGlow||.6)*100;
+      applySkin();
     }
     displayScore=G.score;updStats();buildUps();return 1;
   }catch(e){return 0}
@@ -1542,6 +1596,9 @@ function initIcons(){
   document.getElementById('xiPrest').innerHTML=IC.crown;
   document.getElementById('xiTime').innerHTML=IC.whistle;
   document.getElementById('lbIcon').innerHTML=IC.leaderboard;
+  document.getElementById('skinBtn').innerHTML=IC.paint;
+  document.getElementById('skinsIcon').innerHTML=IC.paint;
+  applySkin();
 }
 
 // ══════════════ LEADERBOARD ══════════════
@@ -1581,6 +1638,68 @@ function renderLb(){
 }
 
 function showLb(from){lbAutoPost();renderLb();showScreen('lb-screen',from)}
+
+// ══════════════ BALL SKINS ══════════════
+const SKINS=[
+  {id:'classic',nm:'Classic',stars:0,mult:1,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs0bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#ffad5c"/><stop offset="40%" stop-color="#ee8528"/><stop offset="100%" stop-color="#b35a10"/></radialGradient><radialGradient id="bs0hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.55)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs0bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs0hi)"/><clipPath id="bs0c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs0c)" stroke="#1a1a1a" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(60,25,0,.7)" stroke-width="2.5"/></svg>',
+    colors:['#ffad5c','#ee8528','#b35a10']},
+  {id:'midnight',nm:'Midnight',stars:1,mult:1.1,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs1bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#6688cc"/><stop offset="40%" stop-color="#334488"/><stop offset="100%" stop-color="#1a2244"/></radialGradient><radialGradient id="bs1hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.45)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs1bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs1hi)"/><clipPath id="bs1c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs1c)" stroke="rgba(200,220,255,.3)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(10,15,40,.7)" stroke-width="2.5"/></svg>',
+    colors:['#6688cc','#334488','#1a2244']},
+  {id:'fire',nm:'Inferno',stars:3,mult:1.25,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs2bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#ff6644"/><stop offset="40%" stop-color="#cc2200"/><stop offset="100%" stop-color="#881100"/></radialGradient><radialGradient id="bs2hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,100,.5)"/><stop offset="100%" stop-color="rgba(255,200,0,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs2bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs2hi)"/><clipPath id="bs2c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs2c)" stroke="rgba(255,180,0,.35)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(80,10,0,.7)" stroke-width="2.5"/></svg>',
+    colors:['#ff6644','#cc2200','#881100']},
+  {id:'neon',nm:'Neon',stars:5,mult:1.5,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs3bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#44ffaa"/><stop offset="40%" stop-color="#00cc66"/><stop offset="100%" stop-color="#006633"/></radialGradient><radialGradient id="bs3hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.5)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs3bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs3hi)"/><clipPath id="bs3c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs3c)" stroke="rgba(0,255,150,.4)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,60,30,.7)" stroke-width="2.5"/></svg>',
+    colors:['#44ffaa','#00cc66','#006633']},
+  {id:'galaxy',nm:'Galaxy',stars:8,mult:1.75,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs4bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#cc66ff"/><stop offset="40%" stop-color="#7722cc"/><stop offset="100%" stop-color="#330066"/></radialGradient><radialGradient id="bs4hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,200,255,.5)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs4bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs4hi)"/><clipPath id="bs4c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs4c)" stroke="rgba(200,150,255,.3)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(30,0,60,.7)" stroke-width="2.5"/><circle cx="30" cy="30" r="1.5" fill="rgba(255,255,255,.6)"/><circle cx="65" cy="25" r="1" fill="rgba(255,255,255,.4)"/><circle cx="72" cy="60" r="1.3" fill="rgba(255,255,255,.5)"/><circle cx="35" cy="70" r="1" fill="rgba(255,255,255,.3)"/></svg>',
+    colors:['#cc66ff','#7722cc','#330066']},
+  {id:'gold',nm:'24K Gold',stars:12,mult:2,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs5bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#ffe066"/><stop offset="40%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#b8860b"/></radialGradient><radialGradient id="bs5hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.65)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs5bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs5hi)"/><clipPath id="bs5c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs5c)" stroke="rgba(120,80,0,.35)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(100,70,0,.7)" stroke-width="2.5"/></svg>',
+    colors:['#ffe066','#ffcc00','#b8860b']},
+  {id:'ice',nm:'Frozen',stars:16,mult:2.5,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs6bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#bbefff"/><stop offset="40%" stop-color="#44ccee"/><stop offset="100%" stop-color="#1188aa"/></radialGradient><radialGradient id="bs6hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.7)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs6bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs6hi)"/><clipPath id="bs6c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs6c)" stroke="rgba(255,255,255,.3)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,60,80,.5)" stroke-width="2.5"/></svg>',
+    colors:['#bbefff','#44ccee','#1188aa']},
+  {id:'void',nm:'Void',stars:20,mult:3,
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs7bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#444"/><stop offset="40%" stop-color="#1a1a1a"/><stop offset="100%" stop-color="#000"/></radialGradient><radialGradient id="bs7hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.25)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs7bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs7hi)"/><clipPath id="bs7c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs7c)" stroke="rgba(255,0,100,.25)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,0,80,.3)" stroke-width="2.5"/></svg>',
+    colors:['#444','#1a1a1a','#000']},
+  {id:'rainbow',nm:'Prismatic',stars:25,mult:4,
+    svg:'<svg viewBox="0 0 100 100"><defs><linearGradient id="bs8bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4444"/><stop offset="20%" stop-color="#ffaa00"/><stop offset="40%" stop-color="#44ff44"/><stop offset="60%" stop-color="#4488ff"/><stop offset="80%" stop-color="#aa44ff"/><stop offset="100%" stop-color="#ff44aa"/></linearGradient><radialGradient id="bs8hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.5)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs8bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs8hi)"/><clipPath id="bs8c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs8c)" stroke="rgba(255,255,255,.3)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2.5"/></svg>',
+    colors:['#ff4444','#44ff44','#4488ff']},
+];
+
+function getActiveSkin(){return SKINS.find(s=>s.id===S.skin)||SKINS[0]}
+function skinMult(){return getActiveSkin().mult}
+function applySkin(){
+  const sk=getActiveSkin();
+  document.getElementById('ball').innerHTML=sk.svg;
+  document.querySelector('.title-ball').innerHTML=sk.svg;
+  document.getElementById('goldenBall').innerHTML=sk.svg;
+}
+function renderSkins(){
+  const g=document.getElementById('skinsGrid');
+  g.innerHTML=SKINS.map(sk=>{
+    const unlocked=G.stars>=sk.stars;
+    const active=S.skin===sk.id||(sk.id==='classic'&&!S.skin);
+    const cls='skin-card'+(active?' active':'')+(unlocked?'':' locked');
+    const lockHtml=unlocked?'':'<div class="skin-lock">'+IC.lock+'</div>';
+    const reqHtml=sk.stars===0?'<span class="skin-req">Default</span>':
+      '<span class="skin-req">'+IC.starMini+' '+sk.stars+' stars</span>';
+    const multHtml=sk.mult>1?'<span class="skin-mult">x'+sk.mult+'</span>':'';
+    const eqHtml=active?'<span class="skin-equipped">Equipped</span>':'';
+    return '<div class="'+cls+'" onclick="selectSkin(\''+sk.id+'\')">'+lockHtml+
+      '<div class="skin-preview">'+sk.svg+'</div>'+
+      '<div class="skin-name">'+sk.nm+'</div>'+multHtml+reqHtml+eqHtml+'</div>';
+  }).join('');
+}
+function selectSkin(id){
+  const sk=SKINS.find(s=>s.id===id);if(!sk)return;
+  if(G.stars<sk.stars){sndBuzz();toast('Need '+sk.stars+' prestige stars!');return}
+  S.skin=id;applySkin();renderSkins();sndBuy();
+}
+function showSkins(from){renderSkins();showScreen('skins-screen',from)}
 
 // ══════════════ INIT ══════════════
 resize();drawFx();animScore();
