@@ -724,7 +724,7 @@
     <div class="sbox-icon" id="achsIcon"></div>
     <h2>Achievements</h2>
     <div class="sbox-divider"></div>
-    <div class="section-label">Bonus: +<span id="achPctEl">0</span>% all income</div>
+    <div class="section-label"><span id="achPctEl">0</span>/<span id="achTotalEl">12</span> unlocked</div>
     <div id="achsList"></div>
     <div class="sbtns">
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
@@ -960,20 +960,19 @@ const MILES=[100,500,1e3,5e3,1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7,1e8];
 
 // ══════════════ ACHIEVEMENTS ══════════════
 const ACHS=[
-  {id:'combo25',  nm:'Hot Hands',       ds:'Reach 25 combo',          ic:'fire',   test:()=>G.maxCombo>=25,       bonus:2},
-  {id:'combo100', nm:'Combo King',      ds:'Reach 100 combo',         ic:'fire',   test:()=>G.maxCombo>=100,      bonus:3},
-  {id:'combo300', nm:'Combo Legend',     ds:'Reach 300 combo',         ic:'crown',  test:()=>G.maxCombo>=300,      bonus:5},
-  {id:'clicks500',nm:'Sharpshooter',    ds:'Click 500 times',         ic:'ball',   test:()=>G.clicks>=500,        bonus:2},
-  {id:'clicks5k', nm:'Marathon Shooter', ds:'Click 5,000 times',      ic:'ball',   test:()=>G.clicks>=5000,       bonus:3},
-  {id:'golden5',  nm:'Gold Digger',     ds:'Catch 5 golden balls',    ic:'star',   test:()=>G.goldensCaught>=5,   bonus:2},
-  {id:'golden25', nm:'Midas Touch',     ds:'Catch 25 golden balls',   ic:'star',   test:()=>G.goldensCaught>=25,  bonus:5},
-  {id:'prest1',   nm:'Fresh Start',     ds:'Prestige once',           ic:'crown',  test:()=>G.prestiges>=1,       bonus:3},
-  {id:'prest5',   nm:'Veteran',         ds:'Prestige 5 times',        ic:'crown',  test:()=>G.prestiges>=5,       bonus:5},
-  {id:'ups10',    nm:'Big Spender',     ds:'Own 10 upgrades',         ic:'cart',   test:()=>Object.values(G.ups).reduce((a,b)=>a+b,0)>=10, bonus:3},
-  {id:'earn1m',   nm:'Millionaire',     ds:'Earn 1M total points',    ic:'money',  test:()=>G.totalEarned>=1e6,   bonus:2},
-  {id:'earn1b',   nm:'Billionaire',     ds:'Earn 1B total points',    ic:'money',  test:()=>G.totalEarned>=1e9,   bonus:5},
+  {id:'combo25',  nm:'Hot Hands',       ds:'Reach 25 combo',          ic:'fire',   test:()=>G.maxCombo>=25},
+  {id:'combo100', nm:'Combo King',      ds:'Reach 100 combo',         ic:'fire',   test:()=>G.maxCombo>=100},
+  {id:'combo300', nm:'Combo Legend',     ds:'Reach 300 combo',         ic:'crown',  test:()=>G.maxCombo>=300},
+  {id:'clicks500',nm:'Sharpshooter',    ds:'Click 500 times',         ic:'ball',   test:()=>G.clicks>=500},
+  {id:'clicks5k', nm:'Marathon Shooter', ds:'Click 5,000 times',      ic:'ball',   test:()=>G.clicks>=5000},
+  {id:'golden5',  nm:'Gold Digger',     ds:'Catch 5 golden balls',    ic:'star',   test:()=>G.goldensCaught>=5},
+  {id:'golden25', nm:'Midas Touch',     ds:'Catch 25 golden balls',   ic:'star',   test:()=>G.goldensCaught>=25},
+  {id:'prest1',   nm:'Fresh Start',     ds:'Prestige once',           ic:'crown',  test:()=>G.prestiges>=1},
+  {id:'prest5',   nm:'Veteran',         ds:'Prestige 5 times',        ic:'crown',  test:()=>G.prestiges>=5},
+  {id:'ups10',    nm:'Big Spender',     ds:'Own 10 upgrades',         ic:'cart',   test:()=>Object.values(G.ups).reduce((a,b)=>a+b,0)>=10},
+  {id:'earn1m',   nm:'Millionaire',     ds:'Earn 1M total points',    ic:'money',  test:()=>G.totalEarned>=1e6},
+  {id:'earn1b',   nm:'Billionaire',     ds:'Earn 1B total points',    ic:'money',  test:()=>G.totalEarned>=1e9},
 ];
-function achPct(){let p=0;G.achs.forEach(id=>{const a=ACHS.find(x=>x.id===id);if(a)p+=a.bonus});return p}
 function checkAchs(){
   ACHS.forEach(a=>{
     if(!G.achs.includes(a.id)&&a.test()){
@@ -984,9 +983,9 @@ function checkAchs(){
 function trigAch(a){
   const f=document.createElement('div');f.className='ms-flash';document.body.appendChild(f);setTimeout(()=>f.remove(),800);
   const t=document.createElement('div');t.className='ms-text';
-  t.innerHTML=IC.trophy+' '+a.nm+'!<br><span style="font-size:16px;color:var(--green)">+'+a.bonus+'% all income</span>';
+  t.innerHTML=IC.trophy+' '+a.nm+'!';
   document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
-  sndGolden();toast('Achievement: '+a.nm+' (+'+a.bonus+'%)');
+  sndGolden();toast('Achievement: '+a.nm);
 }
 
 // ══════════════ COURT ══════════════
@@ -1193,7 +1192,7 @@ function doClick(cx,cy){
   const pwM=G.powerShot?100:1;
   if(G.powerShot)G.powerShot=false;
 
-  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult() * (1+achPct()/100));
+  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult());
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
@@ -1497,12 +1496,12 @@ setInterval(()=>{
   if(G.ps>0){
     let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
-    earned+=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*(1+achPct()/100));
+    earned+=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult());
   }
   if(G.autoClicks>0){
     let bAll=1;
     G.buffs.forEach(b=>{if(now<b.end&&b.tp==='frenzy')bAll*=b.m});
-    earned+=Math.floor(G.cpc*G.autoClicks*bAll*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*ballMult()*(1+achPct()/100));
+    earned+=Math.floor(G.cpc*G.autoClicks*bAll*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*ballMult());
     if(S.particles){const rc=ballEl.getBoundingClientRect();addP(rc.left+rc.width/2,rc.top+rc.height/2,2,false)}
   }
   if(earned>0){
@@ -1689,11 +1688,12 @@ function updStatsPage(){
 function showStats(from){updStatsPage();showScreen('stats-screen',from)}
 
 function renderAchs(){
-  document.getElementById('achPctEl').textContent=achPct();
+  document.getElementById('achPctEl').textContent=G.achs.length;
+  document.getElementById('achTotalEl').textContent=ACHS.length;
   const el=document.getElementById('achsList');
   el.innerHTML=ACHS.map(a=>{
     const done=G.achs.includes(a.id);
-    return '<div class="srow" style="opacity:'+(done?'1':'.4')+'"><div class="srow-icon"'+(done?' style="color:var(--green)"':'')+'>'+IC[a.ic]+'</div><label>'+a.nm+'<br><small style="color:#999">'+a.ds+'</small></label><span class="stat-val '+(done?'green':'')+'">'+(done?'+'+a.bonus+'%':IC.lock)+'</span></div>';
+    return '<div class="srow" style="opacity:'+(done?'1':'.4')+'"><div class="srow-icon"'+(done?' style="color:var(--green)"':'')+'>'+IC[a.ic]+'</div><label>'+a.nm+'<br><small style="color:#999">'+a.ds+'</small></label><span class="stat-val '+(done?'green':'')+'">'+(done?IC.trophy:IC.lock)+'</span></div>';
   }).join('');
 }
 function showAchs(from){renderAchs();showScreen('achs-screen',from)}
