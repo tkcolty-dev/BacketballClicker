@@ -597,6 +597,7 @@
       <button onclick="showStats('game')"></button>
       <button onclick="showLb('game')"></button>
       <button onclick="showSkins('game')" id="skinBtn"></button>
+      <button onclick="showAchs('game')"></button>
     </div>
 
     <div class="score-wrap">
@@ -608,6 +609,7 @@
         <div id="starLine" style="display:none"><span id="starEl">0</span></div>
         <div id="ballMLine"><span id="ballMEl" class="ball-mult">x1.0</span> ball</div>
         <div id="skinMLine" style="display:none"><span id="skinMEl" class="ball-mult">x1</span> skin</div>
+        <div id="acLine" style="display:none">+<span id="acEl">0</span>/auto</div>
       </div>
     </div>
 
@@ -678,6 +680,8 @@
     <div class="srow"><div class="srow-icon" id="xiStars"></div><label>Stars Earned</label><span class="stat-val" id="stStars">0</span></div>
     <div class="srow"><div class="srow-icon" id="xiPrest"></div><label>Prestiges</label><span class="stat-val" id="stPrestiges">0</span></div>
     <div class="srow"><div class="srow-icon" id="xiTime"></div><label>Time Played</label><span class="stat-val accent" id="stPlayTime">0s</span></div>
+    <div class="srow"><div class="srow-icon" id="xiAchs"></div><label>Achievements</label><span class="stat-val" id="stAchs">0/12</span></div>
+    <div class="srow"><div class="srow-icon" id="xiStreak"></div><label>Login Streak</label><span class="stat-val accent" id="stStreak">0 days</span></div>
     <div class="sbtns">
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
@@ -714,6 +718,20 @@
   </div>
 </div>
 
+<!-- Achievements -->
+<div id="achs-screen" class="screen hidden">
+  <div class="sbox">
+    <div class="sbox-icon" id="achsIcon"></div>
+    <h2>Achievements</h2>
+    <div class="sbox-divider"></div>
+    <div class="section-label">Bonus: +<span id="achPctEl">0</span>% all income</div>
+    <div id="achsList"></div>
+    <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
+    </div>
+  </div>
+</div>
+
 <!-- Golden -->
 <div class="golden" id="goldenEl">
   <div class="golden-ball" id="goldenBall"></div>
@@ -740,6 +758,21 @@
     <div class="btns">
       <button class="btn btn-sm btn-ghost" onclick="hidePrestige()">Cancel</button>
       <button class="btn btn-sm" id="pBtn" onclick="doPrestige()">Retire</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Streak -->
+<div class="overlay" id="streakOv">
+  <div class="modal">
+    <div class="modal-icon" id="streakIcon"></div>
+    <h3>DAILY STREAK!</h3>
+    <div class="stars-display" id="streakDays" style="color:var(--accent)">1</div>
+    <p>Day <span id="streakDayText">1</span> streak bonus!</p>
+    <div class="highlight" id="streakReward"></div>
+    <div class="modal-divider"></div>
+    <div class="btns">
+      <button class="btn btn-sm" onclick="hideStreak()">Collect!</button>
     </div>
   </div>
 </div>
@@ -829,6 +862,9 @@ let G={
   ab:{storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}},
   powerShot:false,
   bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0,
+  goldensCaught:0,achs:[],
+  lastLogin:null,streak:0,streakClaimed:null,
+  autoClicks:0,
 };
 let S={particles:true,shake:true,sound:true,autosave:true,courtGlow:.6};
 let retTo='title';
@@ -896,6 +932,7 @@ const UPS=[
   {id:'hoop',  ic:'hoop',  nm:'Practice Hoop',   ds:'+2.5k/click',      bc:500000,   tp:'c', pw:2500,gr:1},
   {id:'money', ic:'money', nm:'Sponsorship',     ds:'+6000/sec',        bc:2000000,  tp:'a', pw:6000,gr:1},
   {id:'jersey',ic:'jersey',nm:'Jersey Sales',     ds:'+25k/sec',        bc:6000000,  tp:'a', pw:25000,gr:1},
+  {id:'autoclick',ic:'bolt',nm:'Auto-Clicker',   ds:'+1 auto-click/sec',bc:8000000, tp:'ac',pw:1,gr:1},
   {id:'arena', ic:'arena', nm:'Build Arena',     ds:'+120c +15000/sec', bc:10000000, tp:'b', cp:120,ap:15000,gr:1},
   {id:'whstl', ic:'whistle',nm:'Ref Whistle',    ds:'+12k/click',       bc:25000000, tp:'c', pw:12000,gr:1},
   {id:'star',  ic:'star',  nm:'All-Stars',       ds:'+50k/sec',         bc:50000000, tp:'a', pw:50000,gr:1},
@@ -920,6 +957,37 @@ const UPS=[
   {id:'wmontage',ic:'montage',nm:'Winners Montage',ds:'+80B/click',      bc:18000000000000000,tp:'c', pw:80000000000,gr:1,gl:1},
 ];
 const MILES=[100,500,1e3,5e3,1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7,1e8];
+
+// ══════════════ ACHIEVEMENTS ══════════════
+const ACHS=[
+  {id:'combo25',  nm:'Hot Hands',       ds:'Reach 25 combo',          ic:'fire',   test:()=>G.maxCombo>=25,       bonus:2},
+  {id:'combo100', nm:'Combo King',      ds:'Reach 100 combo',         ic:'fire',   test:()=>G.maxCombo>=100,      bonus:3},
+  {id:'combo300', nm:'Combo Legend',     ds:'Reach 300 combo',         ic:'crown',  test:()=>G.maxCombo>=300,      bonus:5},
+  {id:'clicks500',nm:'Sharpshooter',    ds:'Click 500 times',         ic:'ball',   test:()=>G.clicks>=500,        bonus:2},
+  {id:'clicks5k', nm:'Marathon Shooter', ds:'Click 5,000 times',      ic:'ball',   test:()=>G.clicks>=5000,       bonus:3},
+  {id:'golden5',  nm:'Gold Digger',     ds:'Catch 5 golden balls',    ic:'star',   test:()=>G.goldensCaught>=5,   bonus:2},
+  {id:'golden25', nm:'Midas Touch',     ds:'Catch 25 golden balls',   ic:'star',   test:()=>G.goldensCaught>=25,  bonus:5},
+  {id:'prest1',   nm:'Fresh Start',     ds:'Prestige once',           ic:'crown',  test:()=>G.prestiges>=1,       bonus:3},
+  {id:'prest5',   nm:'Veteran',         ds:'Prestige 5 times',        ic:'crown',  test:()=>G.prestiges>=5,       bonus:5},
+  {id:'ups10',    nm:'Big Spender',     ds:'Own 10 upgrades',         ic:'cart',   test:()=>Object.values(G.ups).reduce((a,b)=>a+b,0)>=10, bonus:3},
+  {id:'earn1m',   nm:'Millionaire',     ds:'Earn 1M total points',    ic:'money',  test:()=>G.totalEarned>=1e6,   bonus:2},
+  {id:'earn1b',   nm:'Billionaire',     ds:'Earn 1B total points',    ic:'money',  test:()=>G.totalEarned>=1e9,   bonus:5},
+];
+function achPct(){let p=0;G.achs.forEach(id=>{const a=ACHS.find(x=>x.id===id);if(a)p+=a.bonus});return p}
+function checkAchs(){
+  ACHS.forEach(a=>{
+    if(!G.achs.includes(a.id)&&a.test()){
+      G.achs.push(a.id);trigAch(a);
+    }
+  });
+}
+function trigAch(a){
+  const f=document.createElement('div');f.className='ms-flash';document.body.appendChild(f);setTimeout(()=>f.remove(),800);
+  const t=document.createElement('div');t.className='ms-text';
+  t.innerHTML=IC.trophy+' '+a.nm+'!<br><span style="font-size:16px;color:var(--green)">+'+a.bonus+'% all income</span>';
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+  sndGolden();toast('Achievement: '+a.nm+' (+'+a.bonus+'%)');
+}
 
 // ══════════════ COURT ══════════════
 const cCan=document.getElementById('court-canvas'),cCtx=cCan.getContext('2d');
@@ -1069,9 +1137,9 @@ function goBack(){showScreen(retTo==='game'?'game-screen':'title-screen')}
 function startGame(){showScreen('game-screen');sndBounce()}
 function newGame(){
   if(localStorage.getItem('bball3')){showNewGameConfirm();return}
-  resetState();startGame();
+  resetState();startGame();checkStreak();
 }
-function doNewGame(){hideNewGameConfirm();resetState();startGame()}
+function doNewGame(){hideNewGameConfirm();resetState();startGame();checkStreak()}
 function showNewGameConfirm(){
   try{const d=JSON.parse(localStorage.getItem('bball3')),g=d.g;
     document.getElementById('newGameStats').innerHTML=IC.mini+' '+fmtN(g.total||0)+' pts &nbsp;|&nbsp; '+fmtN(g.clicks||0)+' shots';
@@ -1079,7 +1147,7 @@ function showNewGameConfirm(){
   document.getElementById('newGameOv').classList.add('on');
 }
 function hideNewGameConfirm(){document.getElementById('newGameOv').classList.remove('on')}
-function continueGame(){loadGame();buildUps();updStats();startGame();toast('Save Loaded!')}
+function continueGame(){loadGame();buildUps();updStats();startGame();checkStreak();toast('Save Loaded!')}
 function updTitle(){
   const e=document.getElementById('titleStats');
   const hasSave=!!localStorage.getItem('bball3');
@@ -1125,7 +1193,7 @@ function doClick(cx,cy){
   const pwM=G.powerShot?100:1;
   if(G.powerShot)G.powerShot=false;
 
-  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult());
+  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult() * (1+achPct()/100));
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
@@ -1182,7 +1250,7 @@ function doClick(cx,cy){
   const se=document.getElementById('scoreEl');
   se.classList.remove('pop');void se.offsetWidth;se.classList.add('pop');
 
-  checkMiles();
+  checkMiles();checkAchs();
   if(now-tUpd>200){tUpd=now;updUps()}
 }
 
@@ -1291,15 +1359,16 @@ function spawnGolden(){
 function hideGolden(){G.golden=false;document.getElementById('goldenEl').classList.remove('on');clearInterval(gIV);clearTimeout(gTO);schedGolden()}
 function clickGolden(){
   if(!G.golden)return;
+  G.goldensCaught++;
   const r=Math.random();
-  if(r<.3){const b=Math.max(Math.floor(G.cpc*50+G.ps*30),100);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;toast('GOLDEN! +'+fmtN(b));}
+  if(r<.3){const b=Math.max(Math.floor(G.score*.15),100);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;toast('GOLDEN! +'+fmtN(b));}
   else if(r<.6){addBuff('frenzy',7,77000);toast('GOLDEN FRENZY! x7 for 77s!');}
   else if(r<.85){addBuff('cf',777,13000);toast('CLICK FRENZY! x777 for 13s!');}
   else{addBuff('ss',3,10000);toast('SHOOTING STARS! x3 auto 10s!');}
   updStats();
   const el=document.getElementById('goldenBall'),rc=el.getBoundingClientRect();
   addGoldenP(rc.left+rc.width/2,rc.top+rc.height/2);sndGolden();
-  hideGolden();checkMiles();updUps();
+  hideGolden();checkMiles();checkAchs();updUps();
 }
 function schedGolden(){setTimeout(spawnGolden,35000+Math.random()*60000)}
 
@@ -1340,6 +1409,7 @@ function spawnFallingGolden(){
 function catchFallingGolden(e){
   e.preventDefault();e.stopPropagation();
   if(!fgEl)return;
+  G.goldensCaught++;checkAchs();
   cancelAnimationFrame(fgAnim);
   fgEl.classList.add('caught');
   const rc=fgEl.getBoundingClientRect();
@@ -1364,7 +1434,7 @@ function startCh(){
 }
 function endCh(){
   clearInterval(chIV);G.challenge=false;document.getElementById('challengeEl').classList.remove('on');
-  const c=G.chClicks,b=c*G.cpc*3;G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;updStats();
+  const c=G.chClicks,b=Math.max(Math.floor(G.score*(.05+c*.005)),c);G.score+=b;G.total+=b;G.totalEarned+=b;if(G.score>G.bestScore)G.bestScore=G.score;updStats();
   const r=c>=50?'GODLIKE!':c>=30?'INSANE!':c>=20?'ON FIRE!':c>=15?'Great!':'Nice!';
   toast(r+' '+c+' clicks = +'+fmtN(b));
   if(c>=20){addFirework(fCan.width/2,fCan.height/2);sndCrit()}
@@ -1402,6 +1472,7 @@ function buyUp(u){
   if(u.tp==='c')G.cpc+=u.pw;
   else if(u.tp==='a')G.ps+=u.pw;
   else if(u.tp==='b'){G.cpc+=u.cp;G.ps+=u.ap}
+  else if(u.tp==='ac')G.autoClicks+=u.pw;
   sndBuy();updStats();buildUps();
   const cards=document.querySelectorAll('.product');
   const idx=UPS.findIndex(x=>x.id===u.id);
@@ -1422,12 +1493,21 @@ function updUps(){
 
 // ══════════════ AUTO INCOME ══════════════
 setInterval(()=>{
+  const now=Date.now();let earned=0;
   if(G.ps>0){
-    const now=Date.now();let am=1;
+    let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
-    const tot=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult());
-    G.score+=tot;G.total+=tot;G.totalEarned+=tot;if(G.score>G.bestScore)G.bestScore=G.score;
-    updStats();checkMiles();
+    earned+=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*(1+achPct()/100));
+  }
+  if(G.autoClicks>0){
+    let bAll=1;
+    G.buffs.forEach(b=>{if(now<b.end&&b.tp==='frenzy')bAll*=b.m});
+    earned+=Math.floor(G.cpc*G.autoClicks*bAll*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*ballMult()*(1+achPct()/100));
+    if(S.particles){const rc=ballEl.getBoundingClientRect();addP(rc.left+rc.width/2,rc.top+rc.height/2,2,false)}
+  }
+  if(earned>0){
+    G.score+=earned;G.total+=earned;G.totalEarned+=earned;if(G.score>G.bestScore)G.bestScore=G.score;
+    updStats();checkMiles();checkAchs();
     if(Date.now()-tUpd>500){tUpd=Date.now();updUps()}
   }
 },1000);
@@ -1447,18 +1527,60 @@ function doPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);if(earn<=0)return;
   G.stars+=earn;G.starsTotal=ns;G.prestiges++;
   const st=G.stars,stT=G.starsTotal,be=G.bestScore,te=G.totalEarned,pr=G.prestiges,pt=G.playTime,stt=G.startTime;
+  const gc=G.goldensCaught,ac=G.achs,ll=G.lastLogin,sk=G.streak,sc=G.streakClaimed;
   G.score=0;G.total=0;G.clicks=0;G.cpc=1;G.ps=0;
   G.combo=0;G.maxCombo=0;G.ups={};G.miles=[];G.buffs=[];G.fever=false;
-  G.golden=false;G.challenge=false;G.powerShot=false;
+  G.golden=false;G.challenge=false;G.powerShot=false;G.autoClicks=0;
   G.stars=st;G.starsTotal=stT;G.bestScore=be;G.totalEarned=te;G.prestiges=pr;G.playTime=pt;G.startTime=stt;
+  G.goldensCaught=gc;G.achs=ac;G.lastLogin=ll;G.streak=sk;G.streakClaimed=sc;
   G.ab={storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}};
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
   addFirework(fCan.width/2,fCan.height/2);addFirework(fCan.width*.3,fCan.height/2);addFirework(fCan.width*.7,fCan.height/2);
   sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+st*3+'% bonus)');
-  lbAutoPost();
+  checkAchs();lbAutoPost();
 }
+
+// ══════════════ DAILY STREAK ══════════════
+const STREAK_REWARDS=[
+  {bonus:100,   desc:'+100 pts'},
+  {bonus:500,   desc:'+500 pts'},
+  {bonus:2500,  desc:'+2,500 pts'},
+  {bonus:10000, desc:'+10K pts'},
+  {bonus:50000, desc:'+50K pts'},
+  {bonus:200000,desc:'+200K pts'},
+  {bonus:1000000,desc:'+1M pts + x2 buff!'},
+];
+function checkStreak(){
+  const today=new Date().toLocaleDateString('sv');
+  if(G.streakClaimed===today)return;
+  if(G.lastLogin===null){G.streak=1}
+  else{
+    const last=new Date(G.lastLogin+'T00:00:00'),now=new Date(today+'T00:00:00');
+    const diff=Math.round((now-last)/(864e5));
+    if(diff===1)G.streak++;
+    else if(diff>1)G.streak=1;
+    else return;
+  }
+  G.lastLogin=today;G.streakClaimed=today;
+  showStreakReward();
+}
+function showStreakReward(){
+  const idx=Math.min(G.streak,7)-1;
+  const tier=STREAK_REWARDS[idx];
+  const mult=G.streak>7?Math.floor(G.streak/7):1;
+  const pts=tier.bonus*mult;
+  G.score+=pts;G.total+=pts;G.totalEarned+=pts;
+  if(G.score>G.bestScore)G.bestScore=G.score;
+  if(idx===6)addBuff('frenzy',2,60000);
+  document.getElementById('streakDays').textContent=G.streak;
+  document.getElementById('streakDayText').textContent=G.streak;
+  document.getElementById('streakReward').innerHTML=IC.mini+' +'+fmtN(pts)+(idx===6?' + x2 buff 60s!':'');
+  document.getElementById('streakOv').classList.add('on');
+  sndGolden();
+}
+function hideStreak(){document.getElementById('streakOv').classList.remove('on')}
 
 // ══════════════ DISPLAY ══════════════
 function ballMult(){return 1+Math.floor(G.clicks/50)*0.1}
@@ -1470,6 +1592,8 @@ function updStats(){
   const sm=skinMult();
   if(sm>1){document.getElementById('skinMLine').style.display='';document.getElementById('skinMEl').textContent='x'+sm}
   else{document.getElementById('skinMLine').style.display='none'}
+  if(G.autoClicks>0){document.getElementById('acLine').style.display='';document.getElementById('acEl').textContent=fmtN(G.autoClicks)}
+  else{document.getElementById('acLine').style.display='none'}
 }
 function fmtN(n){
   if(n>=1e15)return(n/1e15).toFixed(2)+'Q';if(n>=1e12)return(n/1e12).toFixed(2)+'T';
@@ -1485,8 +1609,11 @@ function saveGame(){
   localStorage.setItem('bball3',JSON.stringify({
     g:{score:G.score,total:G.total,clicks:G.clicks,cpc:G.cpc,ps:G.ps,
       maxCombo:G.maxCombo,ups:G.ups,miles:G.miles,stars:G.stars,starsTotal:G.starsTotal,
-      bestScore:G.bestScore,totalEarned:G.totalEarned,prestiges:G.prestiges,startTime:G.startTime,playTime:G.playTime},
-    s:S,v:3,t:Date.now()
+      bestScore:G.bestScore,totalEarned:G.totalEarned,prestiges:G.prestiges,startTime:G.startTime,playTime:G.playTime,
+      goldensCaught:G.goldensCaught,achs:G.achs,
+      lastLogin:G.lastLogin,streak:G.streak,streakClaimed:G.streakClaimed,
+      autoClicks:G.autoClicks},
+    s:S,v:4,t:Date.now()
   }));
   lbAutoPost();
 }
@@ -1500,6 +1627,9 @@ function loadGame(){
     G.stars=g.stars||0;G.starsTotal=g.starsTotal||0;
     G.bestScore=g.bestScore||0;G.totalEarned=g.totalEarned||0;G.prestiges=g.prestiges||0;
     G.startTime=g.startTime||Date.now();G.playTime=g.playTime||0;
+    G.goldensCaught=g.goldensCaught||0;G.achs=g.achs||[];
+    G.lastLogin=g.lastLogin||null;G.streak=g.streak||0;G.streakClaimed=g.streakClaimed||null;
+    G.autoClicks=g.autoClicks||0;
     if(d.s){Object.assign(S,d.s);
       document.getElementById('tPart').classList.toggle('on',S.particles);
       document.getElementById('tShake').classList.toggle('on',S.shake);
@@ -1517,7 +1647,10 @@ function resetState(){
     ups:{},miles:[],fever:false,feverT:null,golden:false,challenge:false,chClicks:0,
     stars:0,starsTotal:0,buffs:[],
     ab:{storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}},powerShot:false,
-    bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0};
+    bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0,
+    goldensCaught:0,achs:[],
+    lastLogin:null,streak:0,streakClaimed:null,
+    autoClicks:0};
   displayScore=0;
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1550,8 +1683,20 @@ function updStatsPage(){
   document.getElementById('stStars').textContent=fmtN(G.stars);
   document.getElementById('stPrestiges').textContent=fmtN(G.prestiges);
   document.getElementById('stPlayTime').textContent=fmtTime(G.playTime);
+  document.getElementById('stAchs').textContent=G.achs.length+'/'+ACHS.length;
+  document.getElementById('stStreak').textContent=G.streak+' day'+(G.streak!==1?'s':'');
 }
 function showStats(from){updStatsPage();showScreen('stats-screen',from)}
+
+function renderAchs(){
+  document.getElementById('achPctEl').textContent=achPct();
+  const el=document.getElementById('achsList');
+  el.innerHTML=ACHS.map(a=>{
+    const done=G.achs.includes(a.id);
+    return '<div class="srow" style="opacity:'+(done?'1':'.4')+'"><div class="srow-icon"'+(done?' style="color:var(--green)"':'')+'>'+IC[a.ic]+'</div><label>'+a.nm+'<br><small style="color:#999">'+a.ds+'</small></label><span class="stat-val '+(done?'green':'')+'">'+(done?'+'+a.bonus+'%':IC.lock)+'</span></div>';
+  }).join('');
+}
+function showAchs(from){renderAchs();showScreen('achs-screen',from)}
 
 // ══════════════ TOAST/CONFIRM ══════════════
 let toastT;
@@ -1572,7 +1717,7 @@ function initIcons(){
   if(gt[1])gt[1].innerHTML=IC.save;
   if(gt[2])gt[2].innerHTML=IC.chart;
   if(gt[3])gt[3].innerHTML=IC.leaderboard;
-  // abilities removed
+  if(gt[5])gt[5].innerHTML=IC.trophy;
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
   document.getElementById('newGameIcon').innerHTML=IC.ball;
@@ -1598,6 +1743,10 @@ function initIcons(){
   document.getElementById('lbIcon').innerHTML=IC.leaderboard;
   document.getElementById('skinBtn').innerHTML=IC.paint;
   document.getElementById('skinsIcon').innerHTML=IC.paint;
+  document.getElementById('achsIcon').innerHTML=IC.trophy;
+  document.getElementById('xiAchs').innerHTML=IC.trophy;
+  document.getElementById('xiStreak').innerHTML=IC.fire;
+  document.getElementById('streakIcon').innerHTML=IC.fire;
   applySkin();
 }
 
