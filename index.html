@@ -1613,7 +1613,7 @@ function showStreakReward(){
 function hideStreak(){document.getElementById('streakOv').classList.remove('on')}
 
 // ══════════════ DISPLAY ══════════════
-function ballMult(){return 1+Math.floor(G.clicks/50)*0.1}
+function ballMult(){return 1+Math.floor(G.clicks/150)*0.1}
 function updStats(){
   document.getElementById('psEl').textContent=fmtN(G.ps);
   document.getElementById('cpcEl').textContent=fmtN(G.cpc);
