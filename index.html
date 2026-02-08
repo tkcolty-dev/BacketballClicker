@@ -517,21 +517,6 @@
     .section-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin:16px 0 4px 4px;font-weight:600}
     .section-label:first-of-type{margin-top:0}
 
-    /* Leaderboard */
-    #lb-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
-    .lb-list{margin:4px 0 0;max-height:340px;overflow-y:auto}
-    .lb-list::-webkit-scrollbar{width:4px}
-    .lb-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:4px}
-    .lb-entry{
-      display:flex;align-items:center;gap:10px;padding:10px 14px;margin:4px 0;border-radius:12px;
-      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);transition:background .15s;
-    }
-    .lb-entry:hover{background:rgba(255,255,255,.04)}
-    .lb-rank{width:26px;font-size:15px;font-weight:800;text-align:center;flex-shrink:0}
-    .lb-rank.gold{color:#ffcc44}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
-    .lb-name{flex:1;font-size:13px;font-weight:600;color:var(--text-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .lb-score{font-size:13px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
-    .lb-empty{color:var(--text-dim);font-size:13px;text-align:center;padding:30px 0}
     /* Ball Skins */
     #skins-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
     .skins-grid{
@@ -562,6 +547,29 @@
     .skin-lock svg{width:100%;height:100%}
     .skin-mult{font-size:10px;font-weight:700;color:var(--green);margin-bottom:-2px}
     .skin-equipped{font-size:8px;color:var(--accent);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    /* Prestige Shop */
+    #pshop-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+    .pshop-bal{font-size:14px;color:var(--gold);font-weight:700;text-align:center;margin:-8px 0 8px;display:flex;align-items:center;justify-content:center;gap:5px}
+    .perk-row{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:12px 14px;margin:4px 0;border-radius:12px;
+      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);
+      transition:background .15s;
+    }
+    .perk-row:hover{background:rgba(255,255,255,.04)}
+    .perk-row.owned{border-color:var(--green);background:rgba(76,255,136,.04)}
+    .perk-info{flex:1;min-width:0}
+    .perk-name{font-size:13px;font-weight:700;color:#fff}
+    .perk-desc{font-size:10px;color:var(--text-dim);margin-top:2px}
+    .perk-buy{
+      font-family:inherit;font-size:11px;font-weight:700;padding:6px 14px;border:none;
+      background:linear-gradient(180deg,#ffcc44,#e6a800);color:#1a1a1a;border-radius:20px;
+      cursor:pointer;white-space:nowrap;transition:filter .15s;
+      display:flex;align-items:center;gap:4px;
+    }
+    .perk-buy:hover{filter:brightness(1.15)}
+    .perk-buy:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.5)}
+    .perk-owned{font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px}
 
     /* Toast */
     .toast{
@@ -606,9 +614,9 @@
       <button onclick="showScreen('settings-screen','game')"></button>
       <button onclick="saveGame();toast('Saved!')"></button>
       <button onclick="showStats('game')"></button>
-      <button onclick="showLb('game')"></button>
       <button onclick="showSkins('game')" id="skinBtn"></button>
       <button onclick="showAchs('game')"></button>
+      <button onclick="showPshop('game')" id="pshopBtn"></button>
     </div>
 
     <div class="score-wrap">
@@ -699,21 +707,6 @@
   </div>
 </div>
 
-<!-- Leaderboard -->
-<div id="lb-screen" class="screen hidden">
-  <div class="sbox">
-    <div class="sbox-icon" id="lbIcon"></div>
-    <h2>Leaderboard</h2>
-    <div class="sbox-divider"></div>
-    <div class="section-label">Top Scores</div>
-    <div class="lb-list" id="lbList"></div>
-    <div class="sbtns">
-      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
-      <button class="btn btn-sm btn-danger" onclick="clearLb()">Clear</button>
-    </div>
-  </div>
-</div>
-
 
 <!-- Ball Skins -->
 <div id="skins-screen" class="screen hidden">
@@ -723,6 +716,21 @@
     <div class="sbox-divider"></div>
     <div class="section-label">Unlock with Prestige Stars</div>
     <div class="skins-grid" id="skinsGrid"></div>
+    <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prestige Shop -->
+<div id="pshop-screen" class="screen hidden">
+  <div class="sbox">
+    <div class="sbox-icon" id="pshopIcon"></div>
+    <h2>Prestige Shop</h2>
+    <div class="sbox-divider"></div>
+    <div class="pshop-bal" id="pshopBal"></div>
+    <div class="section-label">Permanent Perks</div>
+    <div id="perksList"></div>
     <div class="sbtns">
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
@@ -876,6 +884,7 @@ let G={
   goldensCaught:0,achs:[],
   lastLogin:null,streak:0,streakClaimed:null,
   autoClicks:0,
+  perks:{},
 };
 let S={particles:true,shake:true,sound:true,autosave:true,courtGlow:.6};
 let retTo='title';
@@ -1138,6 +1147,17 @@ function drawFx(){
     drawBall(fCtx,b.x,b.y,b.r*(.5+b.life*.5),b.rot,b.life*.7);
   }
   if(G.fever)addEmber();
+  // Rebirth skin trail particles
+  const trailSk=getActiveSkin();
+  if(trailSk.trail&&S.particles&&!document.getElementById('game-screen').classList.contains('hidden')){
+    const rc=ballEl.getBoundingClientRect();
+    const bx=rc.left+rc.width/2,by=rc.top+rc.height/2;
+    const tc=trailSk.trail;
+    P.push({x:bx+(Math.random()*20-10),y:by+(Math.random()*20-10),
+      dx:(Math.random()-.5)*1.2,dy:-1-Math.random()*1.5,
+      r:1.5+Math.random()*2,life:1,dec:.015+Math.random()*.01,
+      col:tc,star:trailSk.id==='diamond'||trailSk.id==='obsidian'?1:0});
+  }
   requestAnimationFrame(drawFx);
 }
 
@@ -1199,11 +1219,12 @@ function doClick(cx,cy){
   let bClick=1,bAll=1;
   G.buffs.forEach(b=>{if(now<b.end){if(b.tp==='cf')bClick*=b.m;else bAll*=b.m}});
   const fM=G.fever?2:1;
-  const pM=1+G.stars*.03;
+  const pM=1+G.starsTotal*.03;
   const pwM=G.powerShot?100:1;
   if(G.powerShot)G.powerShot=false;
 
-  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult());
+  const scM=G.perks.superClick?1.5:1;
+  let pts=Math.floor(G.cpc * comboM * bClick * bAll * fM * pM * pwM * ballMult() * skinMult() * scM);
   if(pts<1)pts=1;
 
   G.score+=pts;G.total+=pts;G.clicks++;
@@ -1211,7 +1232,7 @@ function doClick(cx,cy){
 
   G.combo++;if(G.combo>G.maxCombo)G.maxCombo=G.combo;
   clearTimeout(G.comboT);
-  G.comboT=setTimeout(()=>{G.combo=0;updCombo();checkFever(0)},3500);
+  G.comboT=setTimeout(()=>{G.combo=0;updCombo();checkFever(0)},G.perks.combo?5000:3500);
   updCombo();checkFever(1);
 
   if(G.challenge)G.chClicks++;
@@ -1362,9 +1383,10 @@ function spawnGolden(){
   el.style.left=(80+Math.random()*(innerWidth-220))+'px';
   el.style.top=(80+Math.random()*(innerHeight-220))+'px';
   el.classList.add('on');fill.style.width='100%';
-  let rem=3500;
-  gIV=setInterval(()=>{rem-=50;fill.style.width=(rem/3500*100)+'%';if(rem<=0)hideGolden()},50);
-  gTO=setTimeout(hideGolden,3600);
+  const gDur=G.perks.magnet?5000:3500;
+  let rem=gDur;
+  gIV=setInterval(()=>{rem-=50;fill.style.width=(rem/gDur*100)+'%';if(rem<=0)hideGolden()},50);
+  gTO=setTimeout(hideGolden,gDur+100);
 }
 function hideGolden(){G.golden=false;document.getElementById('goldenEl').classList.remove('on');clearInterval(gIV);clearTimeout(gTO);schedGolden()}
 function clickGolden(){
@@ -1380,7 +1402,7 @@ function clickGolden(){
   addGoldenP(rc.left+rc.width/2,rc.top+rc.height/2);sndGolden();
   hideGolden();checkMiles();checkAchs();updUps();
 }
-function schedGolden(){setTimeout(spawnGolden,35000+Math.random()*60000)}
+function schedGolden(){const d=(35000+Math.random()*60000)*(G.perks.lucky?0.7:1);setTimeout(spawnGolden,d)}
 
 // ══════════════ FALLING GOLDEN ══════════════
 let fgEl=null,fgAnim=null,fgTimer=null;
@@ -1507,12 +1529,12 @@ setInterval(()=>{
   if(G.ps>0){
     let am=1;
     G.buffs.forEach(b=>{if(now<b.end&&(b.tp==='frenzy'||b.tp==='ss'||b.tp==='fever'))am*=b.m});
-    earned+=Math.floor(G.ps*am*(1+G.stars*.03)*(G.fever?2:1)*skinMult());
+    earned+=Math.floor(G.ps*am*(1+G.starsTotal*.03)*(G.fever?2:1)*skinMult()*(G.perks.autoBoost?1.5:1));
   }
   if(G.autoClicks>0){
     let bAll=1;
     G.buffs.forEach(b=>{if(now<b.end&&b.tp==='frenzy')bAll*=b.m});
-    earned+=Math.floor(G.cpc*G.autoClicks*bAll*(1+G.stars*.03)*(G.fever?2:1)*skinMult()*ballMult());
+    earned+=Math.floor(G.cpc*G.autoClicks*bAll*(1+G.starsTotal*.03)*(G.fever?2:1)*skinMult()*ballMult()*(G.perks.autoBoost?1.5:1));
     if(S.particles){const rc=ballEl.getBoundingClientRect();addP(rc.left+rc.width/2,rc.top+rc.height/2,2,false)}
   }
   if(earned>0){
@@ -1528,7 +1550,7 @@ function showPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);
   document.getElementById('pStars').innerHTML=IC.starMini+' '+G.stars+(earn>0?' (+'+earn+')':'');
   document.getElementById('pBonus').textContent=earn>0?'+'+earn+' new stars':'No new stars yet';
-  document.getElementById('pCurrent').textContent='Bonus: +'+G.stars*3+'% → +'+(G.stars+earn)*3+'%';
+  document.getElementById('pCurrent').textContent='Bonus: +'+G.starsTotal*3+'% → +'+(G.starsTotal+earn)*3+'%';
   document.getElementById('pBtn').style.opacity=earn>0?1:.4;
   document.getElementById('prestigeOv').classList.add('on');
 }
@@ -1537,19 +1559,19 @@ function doPrestige(){
   const ns=calcStars(),earn=Math.max(0,ns-G.starsTotal);if(earn<=0)return;
   G.stars+=earn;G.starsTotal=ns;G.prestiges++;
   const st=G.stars,stT=G.starsTotal,be=G.bestScore,te=G.totalEarned,pr=G.prestiges,pt=G.playTime,stt=G.startTime;
-  const gc=G.goldensCaught,ac=G.achs,ll=G.lastLogin,sk=G.streak,sc=G.streakClaimed;
+  const gc=G.goldensCaught,ac=G.achs,ll=G.lastLogin,sk=G.streak,sc=G.streakClaimed,pk=G.perks;
   G.score=0;G.total=0;G.clicks=0;G.cpc=1;G.ps=0;
   G.combo=0;G.maxCombo=0;G.ups={};G.miles=[];G.buffs=[];G.fever=false;
   G.golden=false;G.challenge=false;G.powerShot=false;G.autoClicks=0;
   G.stars=st;G.starsTotal=stT;G.bestScore=be;G.totalEarned=te;G.prestiges=pr;G.playTime=pt;G.startTime=stt;
-  G.goldensCaught=gc;G.achs=ac;G.lastLogin=ll;G.streak=sk;G.streakClaimed=sc;
+  G.goldensCaught=gc;G.achs=ac;G.lastLogin=ll;G.streak=sk;G.streakClaimed=sc;G.perks=pk;
   G.ab={storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}};
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
   addFirework(fCan.width/2,fCan.height/2);addFirework(fCan.width*.3,fCan.height/2);addFirework(fCan.width*.7,fCan.height/2);
-  sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+st*3+'% bonus)');
-  checkAchs();lbAutoPost();
+  sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+stT*3+'% bonus)');
+  checkAchs();
 }
 
 // ══════════════ DAILY STREAK ══════════════
@@ -1595,7 +1617,7 @@ function ballMult(){return 1+Math.floor(G.clicks/50)*0.1}
 function updStats(){
   document.getElementById('psEl').textContent=fmtN(G.ps);
   document.getElementById('cpcEl').textContent=fmtN(G.cpc);
-  if(G.stars>0){document.getElementById('starLine').style.display='';document.getElementById('starEl').textContent=G.stars}
+  if(G.starsTotal>0){document.getElementById('starLine').style.display='';document.getElementById('starEl').textContent=G.stars}
   document.getElementById('ballMEl').textContent='x'+ballMult().toFixed(1);
   const sm=skinMult();
   if(sm>1){document.getElementById('skinMLine').style.display='';document.getElementById('skinMEl').textContent='x'+sm}
@@ -1620,10 +1642,9 @@ function saveGame(){
       bestScore:G.bestScore,totalEarned:G.totalEarned,prestiges:G.prestiges,startTime:G.startTime,playTime:G.playTime,
       goldensCaught:G.goldensCaught,achs:G.achs,
       lastLogin:G.lastLogin,streak:G.streak,streakClaimed:G.streakClaimed,
-      autoClicks:G.autoClicks},
+      autoClicks:G.autoClicks,perks:G.perks},
     s:S,v:4,t:Date.now()
   }));
-  lbAutoPost();
 }
 function loadGame(){
   const r=localStorage.getItem('bball3');if(!r)return 0;
@@ -1638,6 +1659,7 @@ function loadGame(){
     G.goldensCaught=g.goldensCaught||0;G.achs=g.achs||[];
     G.lastLogin=g.lastLogin||null;G.streak=g.streak||0;G.streakClaimed=g.streakClaimed||null;
     G.autoClicks=g.autoClicks||0;
+    G.perks=g.perks||{};
     if(d.s){Object.assign(S,d.s);
       document.getElementById('tPart').classList.toggle('on',S.particles);
       document.getElementById('tShake').classList.toggle('on',S.shake);
@@ -1658,7 +1680,7 @@ function resetState(){
     bestScore:0,totalEarned:0,prestiges:0,startTime:Date.now(),playTime:0,
     goldensCaught:0,achs:[],
     lastLogin:null,streak:0,streakClaimed:null,
-    autoClicks:0};
+    autoClicks:0,perks:{}};
   displayScore=0;
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1725,8 +1747,8 @@ function initIcons(){
   if(gt[0])gt[0].innerHTML=IC.gear;
   if(gt[1])gt[1].innerHTML=IC.save;
   if(gt[2])gt[2].innerHTML=IC.chart;
-  if(gt[3])gt[3].innerHTML=IC.leaderboard;
-  if(gt[5])gt[5].innerHTML=IC.trophy;
+  if(gt[4])gt[4].innerHTML=IC.trophy;
+  document.getElementById('pshopBtn').innerHTML=IC.crown;
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
   document.getElementById('newGameIcon').innerHTML=IC.ball;
@@ -1749,53 +1771,43 @@ function initIcons(){
   document.getElementById('xiStars').innerHTML=IC.star;
   document.getElementById('xiPrest').innerHTML=IC.crown;
   document.getElementById('xiTime').innerHTML=IC.whistle;
-  document.getElementById('lbIcon').innerHTML=IC.leaderboard;
   document.getElementById('skinBtn').innerHTML=IC.paint;
   document.getElementById('skinsIcon').innerHTML=IC.paint;
   document.getElementById('achsIcon').innerHTML=IC.trophy;
   document.getElementById('xiAchs').innerHTML=IC.trophy;
   document.getElementById('xiStreak').innerHTML=IC.fire;
   document.getElementById('streakIcon').innerHTML=IC.fire;
+  document.getElementById('pshopIcon').innerHTML=IC.crown;
   applySkin();
 }
 
-// ══════════════ LEADERBOARD ══════════════
-const LB_KEY='bball3_lb';
-const playerName='player'+String(1000+~~(Math.random()*9000));
-
-function getLb(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[]}catch(e){return[]}}
-function saveLb(lb){localStorage.setItem(LB_KEY,JSON.stringify(lb))}
-
-function lbAutoPost(){
-  const lb=getLb(),score=G.bestScore||G.total;
-  if(score<=0)return;
-  const existing=lb.find(e=>e.name===playerName);
-  if(existing){
-    if(score<=existing.score)return;
-    existing.score=score;existing.date=Date.now();
-  }else{
-    lb.push({name:playerName,score,date:Date.now()});
-  }
-  lb.sort((a,b)=>b.score-a.score);
-  if(lb.length>20)lb.length=20;
-  saveLb(lb);
-}
-
-function clearLb(){
-  localStorage.removeItem(LB_KEY);renderLb();toast('Leaderboard cleared!')
-}
-
-function renderLb(){
-  const lb=getLb(),el=document.getElementById('lbList');
-  if(!lb.length){el.innerHTML='<div class="lb-empty">No scores yet. Play to post!</div>';return}
-  el.innerHTML=lb.map((e,i)=>{
-    const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    const medal=i===0?IC.trophyMini:'';
-    return `<div class="lb-entry"><span class="lb-rank ${rc}">${medal||'#'+(i+1)}</span><span class="lb-name">${e.name.replace(/</g,'&lt;')}</span><span class="lb-score">${IC.mini}${fmtN(e.score)}</span></div>`;
+// ══════════════ PRESTIGE SHOP ══════════════
+const PERKS=[
+  {id:'combo',  nm:'Extended Combo',  ds:'Combo timer 3.5s → 5s',           cost:50,  ic:'fire'},
+  {id:'magnet', nm:'Golden Magnet',   ds:'Golden balls last 5s instead of 3.5s', cost:100, ic:'star'},
+  {id:'lucky',  nm:'Lucky Odds',      ds:'Golden balls spawn 30% faster',   cost:150, ic:'clover'},
+  {id:'autoBoost',nm:'Auto Boost',    ds:'Auto-income x1.5',               cost:250, ic:'rocket'},
+  {id:'superClick',nm:'Super Clicks', ds:'Click income x1.5',              cost:400, ic:'bolt'},
+];
+function renderPshop(){
+  document.getElementById('pshopBal').innerHTML=IC.starMini+' '+G.stars+' stars';
+  const el=document.getElementById('perksList');
+  el.innerHTML=PERKS.map(pk=>{
+    const owned=G.perks[pk.id];
+    const canBuy=!owned&&G.stars>=pk.cost;
+    const cls='perk-row'+(owned?' owned':'');
+    const btn=owned?'<span class="perk-owned">OWNED</span>':
+      '<button class="perk-buy" onclick="buyPerk(\''+pk.id+'\')"'+(canBuy?'':' disabled')+'>'+IC.starMini+' '+pk.cost+'</button>';
+    return '<div class="'+cls+'"><div class="perk-info"><div class="perk-name">'+pk.nm+'</div><div class="perk-desc">'+pk.ds+'</div></div>'+btn+'</div>';
   }).join('');
 }
-
-function showLb(from){lbAutoPost();renderLb();showScreen('lb-screen',from)}
+function buyPerk(id){
+  const pk=PERKS.find(p=>p.id===id);if(!pk||G.perks[id])return;
+  if(G.stars<pk.cost){sndBuzz();toast('Need '+pk.cost+' stars!');return}
+  G.stars-=pk.cost;G.perks[id]=true;
+  sndBuy();toast(pk.nm+' unlocked!');renderPshop();updStats();
+}
+function showPshop(from){renderPshop();showScreen('pshop-screen',from)}
 
 // ══════════════ BALL SKINS ══════════════
 const SKINS=[
@@ -1826,6 +1838,16 @@ const SKINS=[
   {id:'rainbow',nm:'Prismatic',stars:250,mult:4,
     svg:'<svg viewBox="0 0 100 100"><defs><linearGradient id="bs8bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4444"/><stop offset="20%" stop-color="#ffaa00"/><stop offset="40%" stop-color="#44ff44"/><stop offset="60%" stop-color="#4488ff"/><stop offset="80%" stop-color="#aa44ff"/><stop offset="100%" stop-color="#ff44aa"/></linearGradient><radialGradient id="bs8hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.5)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs8bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs8hi)"/><clipPath id="bs8c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs8c)" stroke="rgba(255,255,255,.3)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2.5"/></svg>',
     colors:['#ff4444','#44ff44','#4488ff']},
+  // Rebirth skins (require prestige count)
+  {id:'phoenix',nm:'Phoenix',stars:0,rebirths:3,mult:2.5,trail:'#ff6600',
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs9bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#ffcc44"/><stop offset="40%" stop-color="#ff6600"/><stop offset="100%" stop-color="#cc2200"/></radialGradient><radialGradient id="bs9hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,200,.6)"/><stop offset="100%" stop-color="rgba(255,200,0,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs9bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs9hi)"/><clipPath id="bs9c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs9c)" stroke="rgba(255,200,0,.35)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(150,40,0,.7)" stroke-width="2.5"/></svg>',
+    colors:['#ffcc44','#ff6600','#cc2200']},
+  {id:'diamond',nm:'Diamond',stars:0,rebirths:10,mult:3.5,trail:'#44eeff',
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs10bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#eeffff"/><stop offset="40%" stop-color="#44eeff"/><stop offset="100%" stop-color="#0088cc"/></radialGradient><radialGradient id="bs10hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(255,255,255,.8)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs10bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs10hi)"/><clipPath id="bs10c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs10c)" stroke="rgba(255,255,255,.4)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(0,80,120,.5)" stroke-width="2.5"/><circle cx="30" cy="28" r="2" fill="rgba(255,255,255,.7)"/><circle cx="68" cy="35" r="1.5" fill="rgba(255,255,255,.5)"/><circle cx="40" cy="65" r="1.2" fill="rgba(255,255,255,.4)"/><circle cx="62" cy="70" r="1.8" fill="rgba(255,255,255,.6)"/></svg>',
+    colors:['#eeffff','#44eeff','#0088cc']},
+  {id:'obsidian',nm:'Obsidian',stars:0,rebirths:25,mult:5,trail:'#aa44ff',
+    svg:'<svg viewBox="0 0 100 100"><defs><radialGradient id="bs11bg" cx="38%" cy="34%" r="65%"><stop offset="0%" stop-color="#6622aa"/><stop offset="40%" stop-color="#220044"/><stop offset="100%" stop-color="#0a0010"/></radialGradient><radialGradient id="bs11hi" cx="34%" cy="30%" r="32%"><stop offset="0%" stop-color="rgba(200,100,255,.35)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="46" fill="url(#bs11bg)"/><circle cx="50" cy="50" r="46" fill="url(#bs11hi)"/><clipPath id="bs11c"><circle cx="50" cy="50" r="45"/></clipPath><g clip-path="url(#bs11c)" stroke="rgba(180,0,255,.25)" stroke-width="2.2" fill="none"><path d="M50 4V96"/><path d="M4 50H96"/><path d="M20 8C38 28 38 50 38 50S38 72 20 92"/><path d="M80 8C62 28 62 50 62 50S62 72 80 92"/></g><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(100,0,180,.5)" stroke-width="2.5"/><circle cx="35" cy="32" r="1.3" fill="rgba(255,100,255,.4)"/><circle cx="60" cy="40" r="1" fill="rgba(200,100,255,.3)"/><circle cx="45" cy="68" r="1.5" fill="rgba(180,80,255,.35)"/></svg>',
+    colors:['#6622aa','#220044','#ff00cc']},
 ];
 
 function getActiveSkin(){return SKINS.find(s=>s.id===S.skin)||SKINS[0]}
@@ -1839,11 +1861,13 @@ function applySkin(){
 function renderSkins(){
   const g=document.getElementById('skinsGrid');
   g.innerHTML=SKINS.map(sk=>{
-    const unlocked=G.stars>=sk.stars;
+    const isRebirth=sk.rebirths>0;
+    const unlocked=isRebirth?G.prestiges>=sk.rebirths:G.starsTotal>=sk.stars;
     const active=S.skin===sk.id||(sk.id==='classic'&&!S.skin);
     const cls='skin-card'+(active?' active':'')+(unlocked?'':' locked');
     const lockHtml=unlocked?'':'<div class="skin-lock">'+IC.lock+'</div>';
-    const reqHtml=sk.stars===0?'<span class="skin-req">Default</span>':
+    const reqHtml=isRebirth?'<span class="skin-req">'+sk.rebirths+' prestiges</span>':
+      sk.stars===0?'<span class="skin-req">Default</span>':
       '<span class="skin-req">'+IC.starMini+' '+sk.stars+' stars</span>';
     const multHtml=sk.mult>1?'<span class="skin-mult">x'+sk.mult+'</span>':'';
     const eqHtml=active?'<span class="skin-equipped">Equipped</span>':'';
@@ -1854,7 +1878,9 @@ function renderSkins(){
 }
 function selectSkin(id){
   const sk=SKINS.find(s=>s.id===id);if(!sk)return;
-  if(G.stars<sk.stars){sndBuzz();toast('Need '+sk.stars+' prestige stars!');return}
+  const isRebirth=sk.rebirths>0;
+  if(isRebirth&&G.prestiges<sk.rebirths){sndBuzz();toast('Need '+sk.rebirths+' prestiges!');return}
+  if(!isRebirth&&G.starsTotal<sk.stars){sndBuzz();toast('Need '+sk.stars+' prestige stars!');return}
   S.skin=id;applySkin();renderSkins();sndBuy();
 }
 function showSkins(from){renderSkins();showScreen('skins-screen',from)}
