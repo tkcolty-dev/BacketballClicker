@@ -431,6 +431,13 @@
       12%{opacity:1;transform:translate(-50%,-50%) scale(1.2) rotate(2deg)}
       22%{transform:translate(-50%,-50%) scale(.95)}75%{opacity:1}
       100%{opacity:0;transform:translate(-50%,-50%) translateY(-40px) scale(.85)}}
+    .ach-text{
+      position:fixed;top:20px;left:20px;z-index:29;pointer-events:none;
+      font-size:clamp(16px,3vw,22px);font-weight:700;color:#fff;
+      text-shadow:0 2px 0 #c06000,0 0 20px var(--accent-glow);
+      animation:achT 2s ease-out forwards;
+    }
+    @keyframes achT{0%{opacity:0;transform:translateX(-30px)}10%{opacity:1;transform:translateX(0)}75%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
 
     /* ═══ OVERLAYS ═══ */
     .overlay{
@@ -982,7 +989,7 @@ function checkAchs(){
 }
 function trigAch(a){
   const f=document.createElement('div');f.className='ms-flash';document.body.appendChild(f);setTimeout(()=>f.remove(),800);
-  const t=document.createElement('div');t.className='ms-text';
+  const t=document.createElement('div');t.className='ach-text';
   t.innerHTML=IC.trophy+' '+a.nm+'!';
   document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
   sndGolden();toast('Achievement: '+a.nm);
@@ -1554,14 +1561,12 @@ const STREAK_REWARDS=[
 function checkStreak(){
   const today=new Date().toLocaleDateString('sv');
   if(G.streakClaimed===today)return;
-  if(G.lastLogin===null){G.streak=1}
-  else{
-    const last=new Date(G.lastLogin+'T00:00:00'),now=new Date(today+'T00:00:00');
-    const diff=Math.round((now-last)/(864e5));
-    if(diff===1)G.streak++;
-    else if(diff>1)G.streak=1;
-    else return;
-  }
+  if(G.lastLogin===null){G.streak=1;G.lastLogin=today;G.streakClaimed=today;return}
+  const last=new Date(G.lastLogin+'T00:00:00'),now=new Date(today+'T00:00:00');
+  const diff=Math.round((now-last)/(864e5));
+  if(diff===1)G.streak++;
+  else if(diff>1)G.streak=1;
+  else return;
   G.lastLogin=today;G.streakClaimed=today;
   showStreakReward();
 }
