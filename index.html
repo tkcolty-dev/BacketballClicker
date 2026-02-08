@@ -1376,9 +1376,9 @@ function trigBuff(){
 }
 
 // ══════════════ GOLDEN ══════════════
-let gTO,gIV;
+let gTO,gIV,gSched;
 function spawnGolden(){
-  if(G.golden||G.total<50)return;G.golden=true;
+  if(G.golden)return;if(G.total<50){schedGolden();return}G.golden=true;
   const el=document.getElementById('goldenEl'),fill=document.getElementById('goldenFill');
   el.style.left=(80+Math.random()*(innerWidth-220))+'px';
   el.style.top=(80+Math.random()*(innerHeight-220))+'px';
@@ -1402,7 +1402,7 @@ function clickGolden(){
   addGoldenP(rc.left+rc.width/2,rc.top+rc.height/2);sndGolden();
   hideGolden();checkMiles();checkAchs();updUps();
 }
-function schedGolden(){const d=(35000+Math.random()*60000)*(G.perks.lucky?0.7:1);setTimeout(spawnGolden,d)}
+function schedGolden(){clearTimeout(gSched);const d=(35000+Math.random()*60000)*(G.perks.lucky?0.7:1);gSched=setTimeout(spawnGolden,d)}
 
 // ══════════════ FALLING GOLDEN ══════════════
 let fgEl=null,fgAnim=null,fgTimer=null;
@@ -1455,9 +1455,9 @@ function catchFallingGolden(e){
 }
 
 // ══════════════ CHALLENGE ══════════════
-let chIV;
+let chIV,chSched;
 function startCh(){
-  if(G.challenge||G.total<200)return;G.challenge=true;G.chClicks=0;
+  if(G.challenge)return;if(G.total<200){schedCh();return}G.challenge=true;G.chClicks=0;
   document.getElementById('challengeEl').classList.add('on');
   document.getElementById('chClicks').textContent='0';
   let rem=10;document.getElementById('chTime').textContent=rem;sndBuzz();
@@ -1472,7 +1472,7 @@ function endCh(){
   if(c>=20){addFirework(fCan.width/2,fCan.height/2);sndCrit()}
   checkMiles();schedCh();
 }
-function schedCh(){setTimeout(startCh,80000+Math.random()*80000)}
+function schedCh(){clearTimeout(chSched);chSched=setTimeout(startCh,80000+Math.random()*80000)}
 
 // ══════════════ MILESTONES ══════════════
 function checkMiles(){MILES.forEach(m=>{if(G.total>=m&&!G.miles.includes(m)){G.miles.push(m);trigMile(m)}})}
@@ -1571,7 +1571,7 @@ function doPrestige(){
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
   addFirework(fCan.width/2,fCan.height/2);addFirework(fCan.width*.3,fCan.height/2);addFirework(fCan.width*.7,fCan.height/2);
   sndGolden();toast('PRESTIGE! +'+earn+' stars (+'+stT*3+'% bonus)');
-  checkAchs();
+  checkAchs();schedGolden();schedCh();schedFallingGolden();
 }
 
 // ══════════════ DAILY STREAK ══════════════
@@ -1613,7 +1613,7 @@ function showStreakReward(){
 function hideStreak(){document.getElementById('streakOv').classList.remove('on')}
 
 // ══════════════ DISPLAY ══════════════
-function ballMult(){return 1+Math.floor(G.clicks/150)*0.1}
+function ballMult(){return 1+Math.floor(G.clicks/200)*0.1}
 function updStats(){
   document.getElementById('psEl').textContent=fmtN(G.ps);
   document.getElementById('cpcEl').textContent=fmtN(G.cpc);
@@ -1687,7 +1687,7 @@ function resetState(){
   document.getElementById('starLine').style.display='none';
   updStats();updCombo();buildUps();updBuffs();
 }
-function fullReset(){resetState();hideConfirm();showScreen('title-screen');updTitle();toast('Reset!');}
+function fullReset(){resetState();hideConfirm();showScreen('title-screen');updTitle();toast('Reset!');schedGolden();schedCh();schedFallingGolden();}
 setInterval(()=>{if(S.autosave&&G.total>0)saveGame()},30000);
 setInterval(()=>{if(!document.getElementById('game-screen').classList.contains('hidden'))G.playTime++},1000);
 addEventListener('beforeunload',()=>{if(G.total>0)saveGame()});
@@ -1856,7 +1856,7 @@ function applySkin(){
   const sk=getActiveSkin();
   document.getElementById('ball').innerHTML=sk.svg;
   document.querySelector('.title-ball').innerHTML=sk.svg;
-  document.getElementById('goldenBall').innerHTML=sk.svg;
+  document.getElementById('goldenBall').innerHTML=IC.ball;
 }
 function renderSkins(){
   const g=document.getElementById('skinsGrid');
