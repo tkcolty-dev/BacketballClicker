@@ -1566,6 +1566,7 @@ function doPrestige(){
   G.stars=st;G.starsTotal=stT;G.bestScore=be;G.totalEarned=te;G.prestiges=pr;G.playTime=pt;G.startTime=stt;
   G.goldensCaught=gc;G.achs=ac;G.lastLogin=ll;G.streak=sk;G.streakClaimed=sc;G.perks=pk;
   G.ab={storm:{ready:1,cdEnd:0},power:{ready:1,cdEnd:0},lucky:{ready:1,cdEnd:0}};
+  S.skin='classic';applySkin();
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
   displayScore=0;updStats();updCombo();buildUps();updBuffs();hidePrestige();
@@ -1681,6 +1682,7 @@ function resetState(){
     goldensCaught:0,achs:[],
     lastLogin:null,streak:0,streakClaimed:null,
     autoClicks:0,perks:{}};
+  S.skin='classic';applySkin();
   displayScore=0;
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1804,7 +1806,7 @@ function renderPshop(){
 function buyPerk(id){
   const pk=PERKS.find(p=>p.id===id);if(!pk||G.perks[id])return;
   if(G.stars<pk.cost){sndBuzz();toast('Need '+pk.cost+' stars!');return}
-  G.stars-=pk.cost;G.perks[id]=true;
+  G.perks[id]=true;
   sndBuy();toast(pk.nm+' unlocked!');renderPshop();updStats();
 }
 function showPshop(from){renderPshop();showScreen('pshop-screen',from)}
@@ -1855,7 +1857,7 @@ function skinMult(){return getActiveSkin().mult}
 function applySkin(){
   const sk=getActiveSkin();
   document.getElementById('ball').innerHTML=sk.svg;
-  document.querySelector('.title-ball').innerHTML=sk.svg;
+  document.querySelector('.title-ball').innerHTML=IC.ball;
   document.getElementById('goldenBall').innerHTML=IC.ball;
 }
 function renderSkins(){
