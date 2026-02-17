@@ -573,20 +573,6 @@
 
     /* Leaderboard */
     #lb-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
-    .lb-input-wrap{display:flex;gap:8px;margin:12px 0 16px;justify-content:center}
-    .lb-input{
-      font-family:inherit;font-size:14px;padding:10px 16px;border-radius:14px;
-      border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;
-      outline:none;width:170px;text-align:center;letter-spacing:1px;
-    }
-    .lb-input:focus{border-color:var(--accent);background:rgba(255,140,0,.06)}
-    .lb-input::placeholder{color:var(--text-dim);letter-spacing:0}
-    .lb-set-btn{
-      font-family:inherit;font-size:12px;font-weight:700;padding:10px 18px;border:none;
-      background:linear-gradient(180deg,#ff9a2e,#e86a00);color:#fff;border-radius:14px;
-      cursor:pointer;letter-spacing:1px;text-transform:uppercase;
-    }
-    .lb-set-btn:hover{filter:brightness(1.15)}
     .lb-user-tag{
       font-size:13px;color:var(--accent);font-weight:700;text-align:center;margin:-4px 0 12px;
       letter-spacing:1px;
@@ -783,13 +769,12 @@
     <div class="sbox-icon" id="lbIcon"></div>
     <h2>Leaderboard</h2>
     <div class="sbox-divider"></div>
-    <div id="lbUsernameArea"></div>
+    <div class="lb-user-tag" id="lbUserTag"></div>
     <div class="lb-list" id="lbList">
       <div class="lb-empty">Loading...</div>
     </div>
     <div class="lb-status" id="lbStatus"></div>
     <div class="sbtns">
-      <button class="btn btn-sm" onclick="submitScore()">Submit Score</button>
       <button class="btn btn-sm btn-ghost" onclick="fetchLeaderboard()">Refresh</button>
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
@@ -1722,6 +1707,7 @@ function loadGame(){
     G.autoClicks=g.autoClicks||0;
     G.perks=g.perks||{};
     if(d.s){Object.assign(S,d.s);
+      if(!S.username)S.username='player'+Math.floor(1000+Math.random()*9000);
       document.getElementById('tPart').classList.toggle('on',S.particles);
       document.getElementById('tShake').classList.toggle('on',S.shake);
       document.getElementById('tSound').classList.toggle('on',S.sound);
@@ -1742,7 +1728,7 @@ function resetState(){
     goldensCaught:0,achs:[],
     lastLogin:null,streak:0,streakClaimed:null,
     autoClicks:0,perks:{}};
-  S.skin='classic';applySkin();
+  S.skin='classic';S.username='player'+Math.floor(1000+Math.random()*9000);applySkin();
   displayScore=0;
   document.querySelectorAll('.abtn').forEach(b=>b.className='abtn ready');
   document.querySelectorAll('.cdbar').forEach(b=>b.style.width='100%');
@@ -1951,23 +1937,11 @@ function showSkins(from){renderSkins();showScreen('skins-screen',from)}
 
 // ══════════════ LEADERBOARD ══════════════
 let lbData=[];
-function renderLbUsername(){
-  const el=document.getElementById('lbUsernameArea');
-  if(S.username){
-    el.innerHTML='<div class="lb-user-tag">Playing as: '+S.username+'</div>';
-  } else {
-    el.innerHTML='<div class="lb-input-wrap"><input class="lb-input" id="lbNameInput" placeholder="Username" maxlength="20" autocomplete="off"><button class="lb-set-btn" onclick="setUsername()">Set</button></div>';
-  }
-}
-function setUsername(){
-  const inp=document.getElementById('lbNameInput');
-  if(!inp)return;
-  const v=inp.value.trim().toLowerCase();
-  if(!v||v.length<1||v.length>20||!/^[a-z0-9_]+$/.test(v)){toast('1-20 chars, letters/numbers/_');return}
-  S.username=v;saveGame();renderLbUsername();toast('Username set!');
-}
 function showLeaderboard(from){
-  renderLbUsername();fetchLeaderboard();showScreen('lb-screen',from);
+  document.getElementById('lbUserTag').textContent='Playing as: '+S.username;
+  autoSubmitScore();
+  fetchLeaderboard();
+  showScreen('lb-screen',from);
 }
 async function fetchLeaderboard(){
   const el=document.getElementById('lbList');
@@ -1986,30 +1960,6 @@ async function fetchLeaderboard(){
   }catch(e){
     el.innerHTML='<div class="lb-empty">Could not load leaderboard</div>';
     st.textContent='Offline or no database';
-  }
-}
-async function submitScore(){
-  if(!S.username){toast('Set a username first!');return}
-  const st=document.getElementById('lbStatus');
-  st.textContent='Submitting...';
-  try{
-    const res=await fetch('/api/leaderboard',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        username:S.username,
-        best_score:G.bestScore,
-        total_earned:G.totalEarned,
-        prestiges:G.prestiges,
-        clicks:G.clicks,
-        play_time:G.playTime
-      })
-    });
-    if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.error||'HTTP '+res.status)}
-    toast('Score submitted!');
-    fetchLeaderboard();
-  }catch(e){
-    st.textContent=e.message||'Submit failed';
-    toast('Submit failed');
   }
 }
 function autoSubmitScore(){
