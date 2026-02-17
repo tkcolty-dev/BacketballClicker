@@ -603,8 +603,6 @@
       display:flex;align-items:center;gap:5px;
       opacity:.7;pointer-events:none;
     }
-    .online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:onPulse 2s ease-in-out infinite}
-    @keyframes onPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
     /* Toast */
     .toast{
@@ -850,7 +848,7 @@
   </div>
 </div>
 
-<div class="online-count" id="onlineEl"><span class="online-dot"></span><span id="onlineNum">0</span> playing</div>
+<div class="online-count" id="onlineEl"><span id="onlineNum">0</span> playing</div>
 <div class="toast" id="toastEl"></div>
 <div class="overlay" id="confirmOv">
   <div class="modal">
