@@ -1992,7 +1992,10 @@ function autoSubmitScore(){
 }
 
 // ══════════════ ONLINE PING ══════════════
+// Load username from save early so pings work before Continue is clicked
+try{const sv=JSON.parse(localStorage.getItem('bball3'));if(sv&&sv.s&&sv.s.username)S.username=sv.s.username}catch(e){}
 function pingOnline(){
+  if(!S.username){fetch('/api/online').then(r=>r.json()).then(d=>{document.getElementById('onlineNum').textContent=d.online||0}).catch(()=>{});return}
   fetch('/api/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:S.username})})
     .then(r=>r.json()).then(d=>{document.getElementById('onlineNum').textContent=d.online||0})
     .catch(()=>{});

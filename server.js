@@ -141,6 +141,7 @@ app.delete('/api/leaderboard/:username', async (req, res) => {
   try {
     const username = req.params.username.toLowerCase();
     await pool.query('DELETE FROM leaderboard WHERE username = $1', [username]);
+    onlinePlayers.delete(username);
     res.json({ ok: true });
   } catch (e) {
     console.error('Delete error:', e.message);
