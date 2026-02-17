@@ -13,7 +13,7 @@ if (process.env.VCAP_SERVICES) {
   const pgService = vcap['postgres'] || vcap['on-demand-postgres-db'] || vcap['postgresql'] || Object.values(vcap).find(s => s[0]?.credentials?.uri?.startsWith('postgres'));
   if (pgService) {
     const creds = pgService[0].credentials;
-    pool = new Pool({ connectionString: creds.uri || creds.database_uri, ssl: { rejectUnauthorized: false } });
+    pool = new Pool({ connectionString: creds.uri || creds.database_uri, ssl: false });
   }
 } else if (process.env.DATABASE_URL) {
   pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false });
