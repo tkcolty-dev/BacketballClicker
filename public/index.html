@@ -1206,7 +1206,7 @@ function drawFx(){
 }
 
 // ══════════════ SCREENS ══════════════
-function showScreen(id,from){if(from)retTo=from;document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='title-screen')updTitle()}
+function showScreen(id,from){if(from)retTo=from;document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='title-screen')updTitle();if(id!=='lb-screen'&&lbInterval){clearInterval(lbInterval);lbInterval=null}}
 function goBack(){showScreen(retTo==='game'?'game-screen':'title-screen')}
 function startGame(){showScreen('game-screen');sndBounce()}
 function newGame(){
@@ -1936,12 +1936,14 @@ function selectSkin(id){
 function showSkins(from){renderSkins();showScreen('skins-screen',from)}
 
 // ══════════════ LEADERBOARD ══════════════
-let lbData=[];
+let lbData=[],lbInterval=null;
 function showLeaderboard(from){
   document.getElementById('lbUserTag').textContent='Playing as: '+S.username;
   autoSubmitScore();
   fetchLeaderboard();
   showScreen('lb-screen',from);
+  clearInterval(lbInterval);
+  lbInterval=setInterval(fetchLeaderboard,5000);
 }
 async function fetchLeaderboard(){
   const el=document.getElementById('lbList');
