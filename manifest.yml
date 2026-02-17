@@ -1,6 +1,9 @@
 applications:
 - name: basketball-clicker
-  memory: 64M
-  disk_quota: 64M
+  memory: 128M
+  disk_quota: 128M
   buildpacks:
-  - staticfile_buildpack
+  - nodejs_buildpack
+  services:
+  - bball-postgres
+  command: node server.js

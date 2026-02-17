@@ -571,6 +571,45 @@
     .perk-buy:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.5)}
     .perk-owned{font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px}
 
+    /* Leaderboard */
+    #lb-screen{background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+    .lb-input-wrap{display:flex;gap:8px;margin:12px 0 16px;justify-content:center}
+    .lb-input{
+      font-family:inherit;font-size:14px;padding:10px 16px;border-radius:14px;
+      border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;
+      outline:none;width:170px;text-align:center;letter-spacing:1px;
+    }
+    .lb-input:focus{border-color:var(--accent);background:rgba(255,140,0,.06)}
+    .lb-input::placeholder{color:var(--text-dim);letter-spacing:0}
+    .lb-set-btn{
+      font-family:inherit;font-size:12px;font-weight:700;padding:10px 18px;border:none;
+      background:linear-gradient(180deg,#ff9a2e,#e86a00);color:#fff;border-radius:14px;
+      cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+    }
+    .lb-set-btn:hover{filter:brightness(1.15)}
+    .lb-user-tag{
+      font-size:13px;color:var(--accent);font-weight:700;text-align:center;margin:-4px 0 12px;
+      letter-spacing:1px;
+    }
+    .lb-list{margin:8px 0}
+    .lb-row{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;margin:3px 0;border-radius:12px;
+      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);
+      font-size:13px;
+    }
+    .lb-row.me{border-color:var(--accent);background:rgba(255,140,0,.08)}
+    .lb-rank{width:28px;font-weight:800;color:var(--text-dim);text-align:center;flex-shrink:0}
+    .lb-row:nth-child(1) .lb-rank{color:#ffcc44;font-size:16px}
+    .lb-row:nth-child(2) .lb-rank{color:#c0c0c0;font-size:15px}
+    .lb-row:nth-child(3) .lb-rank{color:#cd7f32;font-size:15px}
+    .lb-name{flex:1;font-weight:600;color:var(--text-mid);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lb-row.me .lb-name{color:var(--accent)}
+    .lb-score{font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+    .lb-extra{font-size:10px;color:var(--text-dim);text-align:center;margin:4px 0 0}
+    .lb-empty{text-align:center;color:var(--text-dim);font-size:13px;padding:24px 0}
+    .lb-status{text-align:center;font-size:11px;color:var(--text-dim);margin:8px 0 0;min-height:16px}
+
     /* Toast */
     .toast{
       position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px) scale(.9);
@@ -617,6 +656,7 @@
       <button onclick="showSkins('game')" id="skinBtn"></button>
       <button onclick="showAchs('game')"></button>
       <button onclick="showPshop('game')" id="pshopBtn"></button>
+      <button onclick="showLeaderboard('game')" id="lbBtn"></button>
     </div>
 
     <div class="score-wrap">
@@ -732,6 +772,25 @@
     <div class="section-label">Permanent Perks</div>
     <div id="perksList"></div>
     <div class="sbtns">
+      <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaderboard -->
+<div id="lb-screen" class="screen hidden">
+  <div class="sbox">
+    <div class="sbox-icon" id="lbIcon"></div>
+    <h2>Leaderboard</h2>
+    <div class="sbox-divider"></div>
+    <div id="lbUsernameArea"></div>
+    <div class="lb-list" id="lbList">
+      <div class="lb-empty">Loading...</div>
+    </div>
+    <div class="lb-status" id="lbStatus"></div>
+    <div class="sbtns">
+      <button class="btn btn-sm" onclick="submitScore()">Submit Score</button>
+      <button class="btn btn-sm btn-ghost" onclick="fetchLeaderboard()">Refresh</button>
       <button class="btn btn-sm btn-ghost" onclick="goBack()">Back</button>
     </div>
   </div>
@@ -886,7 +945,7 @@ let G={
   autoClicks:0,
   perks:{},
 };
-let S={particles:true,shake:true,sound:true,autosave:true,courtGlow:.6};
+let S={particles:true,shake:true,sound:true,autosave:true,courtGlow:.6,username:''};
 let retTo='title';
 
 // ══════════════ UPGRADES ══════════════
@@ -1646,6 +1705,7 @@ function saveGame(){
       autoClicks:G.autoClicks,perks:G.perks},
     s:S,v:4,t:Date.now()
   }));
+  autoSubmitScore();
 }
 function loadGame(){
   const r=localStorage.getItem('bball3');if(!r)return 0;
@@ -1751,6 +1811,7 @@ function initIcons(){
   if(gt[2])gt[2].innerHTML=IC.chart;
   if(gt[4])gt[4].innerHTML=IC.trophy;
   document.getElementById('pshopBtn').innerHTML=IC.crown;
+  document.getElementById('lbBtn').innerHTML=IC.leaderboard;
   document.getElementById('storeToggle').innerHTML=IC.cart;
   document.getElementById('starLine').innerHTML=IC.starMini+'<span id="starEl">0</span>';
   document.getElementById('newGameIcon').innerHTML=IC.ball;
@@ -1780,6 +1841,7 @@ function initIcons(){
   document.getElementById('xiStreak').innerHTML=IC.fire;
   document.getElementById('streakIcon').innerHTML=IC.fire;
   document.getElementById('pshopIcon').innerHTML=IC.crown;
+  document.getElementById('lbIcon').innerHTML=IC.leaderboard;
   applySkin();
 }
 
@@ -1886,6 +1948,84 @@ function selectSkin(id){
   S.skin=id;applySkin();renderSkins();sndBuy();
 }
 function showSkins(from){renderSkins();showScreen('skins-screen',from)}
+
+// ══════════════ LEADERBOARD ══════════════
+let lbData=[];
+function renderLbUsername(){
+  const el=document.getElementById('lbUsernameArea');
+  if(S.username){
+    el.innerHTML='<div class="lb-user-tag">Playing as: '+S.username+'</div>';
+  } else {
+    el.innerHTML='<div class="lb-input-wrap"><input class="lb-input" id="lbNameInput" placeholder="Username" maxlength="20" autocomplete="off"><button class="lb-set-btn" onclick="setUsername()">Set</button></div>';
+  }
+}
+function setUsername(){
+  const inp=document.getElementById('lbNameInput');
+  if(!inp)return;
+  const v=inp.value.trim().toLowerCase();
+  if(!v||v.length<1||v.length>20||!/^[a-z0-9_]+$/.test(v)){toast('1-20 chars, letters/numbers/_');return}
+  S.username=v;saveGame();renderLbUsername();toast('Username set!');
+}
+function showLeaderboard(from){
+  renderLbUsername();fetchLeaderboard();showScreen('lb-screen',from);
+}
+async function fetchLeaderboard(){
+  const el=document.getElementById('lbList');
+  const st=document.getElementById('lbStatus');
+  st.textContent='Loading...';
+  try{
+    const res=await fetch('/api/leaderboard?limit=50');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    lbData=await res.json();
+    if(!lbData.length){el.innerHTML='<div class="lb-empty">No scores yet — be the first!</div>';st.textContent='';return}
+    el.innerHTML=lbData.map((r,i)=>{
+      const isMe=S.username&&r.username===S.username;
+      return '<div class="lb-row'+(isMe?' me':'')+'"><span class="lb-rank">'+(i+1)+'</span><span class="lb-name">'+r.username+'</span><span class="lb-score">'+fmtN(Number(r.best_score))+'</span></div>';
+    }).join('');
+    st.textContent='Top '+lbData.length+' players';
+  }catch(e){
+    el.innerHTML='<div class="lb-empty">Could not load leaderboard</div>';
+    st.textContent='Offline or no database';
+  }
+}
+async function submitScore(){
+  if(!S.username){toast('Set a username first!');return}
+  const st=document.getElementById('lbStatus');
+  st.textContent='Submitting...';
+  try{
+    const res=await fetch('/api/leaderboard',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:S.username,
+        best_score:G.bestScore,
+        total_earned:G.totalEarned,
+        prestiges:G.prestiges,
+        clicks:G.clicks,
+        play_time:G.playTime
+      })
+    });
+    if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.error||'HTTP '+res.status)}
+    toast('Score submitted!');
+    fetchLeaderboard();
+  }catch(e){
+    st.textContent=e.message||'Submit failed';
+    toast('Submit failed');
+  }
+}
+function autoSubmitScore(){
+  if(!S.username)return;
+  fetch('/api/leaderboard',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      username:S.username,
+      best_score:G.bestScore,
+      total_earned:G.totalEarned,
+      prestiges:G.prestiges,
+      clicks:G.clicks,
+      play_time:G.playTime
+    })
+  }).catch(()=>{});
+}
 
 // ══════════════ INIT ══════════════
 resize();drawFx();animScore();
