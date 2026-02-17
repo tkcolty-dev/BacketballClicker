@@ -41,6 +41,27 @@ initDB().catch(e => console.error('DB init error:', e.message));
 // Rate limit: 1 submit per 10s per IP
 const submitTimes = new Map();
 
+// Online players: username -> last ping timestamp
+const onlinePlayers = new Map();
+
+// POST /api/ping — heartbeat from active players
+app.post('/api/ping', (req, res) => {
+  const { username } = req.body;
+  if (username && typeof username === 'string') onlinePlayers.set(username.trim().toLowerCase(), Date.now());
+  const cutoff = Date.now() - 60000;
+  let count = 0;
+  for (const [, t] of onlinePlayers) if (t > cutoff) count++;
+  res.json({ online: count });
+});
+
+// GET /api/online — current player count
+app.get('/api/online', (req, res) => {
+  const cutoff = Date.now() - 60000;
+  let count = 0;
+  for (const [, t] of onlinePlayers) if (t > cutoff) count++;
+  res.json({ online: count });
+});
+
 // GET /api/leaderboard?limit=50
 app.get('/api/leaderboard', async (req, res) => {
   if (!pool) return res.json([]);
@@ -114,10 +135,12 @@ app.post('/api/leaderboard', async (req, res) => {
   }
 });
 
-// Clean up rate limit map every 5 min
+// Clean up stale entries every 5 min
 setInterval(() => {
-  const cutoff = Date.now() - 15000;
-  for (const [ip, t] of submitTimes) if (t < cutoff) submitTimes.delete(ip);
+  const rlCutoff = Date.now() - 15000;
+  for (const [ip, t] of submitTimes) if (t < rlCutoff) submitTimes.delete(ip);
+  const olCutoff = Date.now() - 60000;
+  for (const [u, t] of onlinePlayers) if (t < olCutoff) onlinePlayers.delete(u);
 }, 300000);
 
 const PORT = process.env.PORT || 3000;
