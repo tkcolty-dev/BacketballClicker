@@ -599,7 +599,7 @@
     /* Online counter */
     .online-count{
       position:fixed;bottom:14px;left:16px;z-index:20;
-      font-size:11px;font-weight:600;color:var(--green);letter-spacing:.5px;
+      font-size:11px;font-weight:600;color:#fff;letter-spacing:.5px;
       display:flex;align-items:center;gap:5px;
       opacity:.7;pointer-events:none;
     }
@@ -1219,7 +1219,7 @@ function drawFx(){
 // ══════════════ SCREENS ══════════════
 function showScreen(id,from){if(from)retTo=from;document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='title-screen')updTitle();if(id!=='lb-screen'&&lbInterval){clearInterval(lbInterval);lbInterval=null}}
 function goBack(){showScreen(retTo==='game'?'game-screen':'title-screen')}
-function startGame(){showScreen('game-screen');sndBounce()}
+function startGame(){showScreen('game-screen');sndBounce();schedGolden();schedCh();schedFallingGolden()}
 function newGame(){
   if(localStorage.getItem('bball3')){showNewGameConfirm();return}
   resetState();startGame();checkStreak();
@@ -1433,7 +1433,9 @@ function trigBuff(){
 // ══════════════ GOLDEN ══════════════
 let gTO,gIV,gSched;
 function spawnGolden(){
-  if(G.golden)return;if(G.total<50){schedGolden();return}G.golden=true;
+  if(G.golden)return;if(G.total<50){schedGolden();return}
+  if(document.getElementById('game-screen').classList.contains('hidden')){schedGolden();return}
+  G.golden=true;
   const el=document.getElementById('goldenEl'),fill=document.getElementById('goldenFill');
   el.style.left=(80+Math.random()*(innerWidth-220))+'px';
   el.style.top=(80+Math.random()*(innerHeight-220))+'px';
@@ -1457,16 +1459,16 @@ function clickGolden(){
   addGoldenP(rc.left+rc.width/2,rc.top+rc.height/2);sndGolden();
   hideGolden();checkMiles();checkAchs();updUps();
 }
-function schedGolden(){clearTimeout(gSched);const d=(35000+Math.random()*60000)*(G.perks.lucky?0.7:1);gSched=setTimeout(spawnGolden,d)}
+function schedGolden(){clearTimeout(gSched);const d=(20000+Math.random()*40000)*(G.perks.lucky?0.7:1);gSched=setTimeout(spawnGolden,d)}
 
 // ══════════════ FALLING GOLDEN ══════════════
 let fgEl=null,fgAnim=null,fgTimer=null;
 function schedFallingGolden(){
-  const delay=45000+Math.random()*90000;
+  const delay=30000+Math.random()*60000;
   fgTimer=setTimeout(spawnFallingGolden,delay);
 }
 function spawnFallingGolden(){
-  if(G.total<100)return schedFallingGolden();
+  if(G.total<100||document.getElementById('game-screen').classList.contains('hidden'))return schedFallingGolden();
   if(fgEl){fgEl.remove();fgEl=null;}
   const el=document.createElement('div');
   el.className='fall-golden';
@@ -1512,7 +1514,7 @@ function catchFallingGolden(e){
 // ══════════════ CHALLENGE ══════════════
 let chIV,chSched;
 function startCh(){
-  if(G.challenge)return;if(G.total<200){schedCh();return}G.challenge=true;G.chClicks=0;
+  if(G.challenge)return;if(G.total<200||document.getElementById('game-screen').classList.contains('hidden')){schedCh();return}G.challenge=true;G.chClicks=0;
   document.getElementById('challengeEl').classList.add('on');
   document.getElementById('chClicks').textContent='0';
   let rem=10;document.getElementById('chTime').textContent=rem;sndBuzz();
@@ -1527,7 +1529,7 @@ function endCh(){
   if(c>=20){addFirework(fCan.width/2,fCan.height/2);sndCrit()}
   checkMiles();schedCh();
 }
-function schedCh(){clearTimeout(chSched);chSched=setTimeout(startCh,80000+Math.random()*80000)}
+function schedCh(){clearTimeout(chSched);chSched=setTimeout(startCh,50000+Math.random()*60000)}
 
 // ══════════════ MILESTONES ══════════════
 function checkMiles(){MILES.forEach(m=>{if(G.total>=m&&!G.miles.includes(m)){G.miles.push(m);trigMile(m)}})}
@@ -1730,6 +1732,7 @@ function loadGame(){
   }catch(e){return 0}
 }
 function resetState(){
+  if(S.username)fetch('/api/leaderboard/'+S.username,{method:'DELETE'}).catch(()=>{});
   localStorage.removeItem('bball3');
   G={score:0,total:0,clicks:0,cpc:1,ps:0,combo:0,comboT:null,maxCombo:0,
     ups:{},miles:[],fever:false,feverT:null,golden:false,challenge:false,chClicks:0,
@@ -1996,12 +1999,11 @@ function pingOnline(){
     .then(r=>r.json()).then(d=>{document.getElementById('onlineNum').textContent=d.online||0})
     .catch(()=>{});
 }
-pingOnline();setInterval(pingOnline,15000);
+pingOnline();setInterval(pingOnline,5000);
 
 // ══════════════ INIT ══════════════
 resize();drawFx();animScore();
 buildUps();updStats();initIcons();updTitle();
-schedGolden();schedCh();schedFallingGolden();
 addEventListener('resize',resize);
 </script>
 </body>

@@ -135,6 +135,19 @@ app.post('/api/leaderboard', async (req, res) => {
   }
 });
 
+// DELETE /api/leaderboard/:username
+app.delete('/api/leaderboard/:username', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'No database configured' });
+  try {
+    const username = req.params.username.toLowerCase();
+    await pool.query('DELETE FROM leaderboard WHERE username = $1', [username]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Delete error:', e.message);
+    res.status(500).json({ error: 'Failed to delete player' });
+  }
+});
+
 // Clean up stale entries every 5 min
 setInterval(() => {
   const rlCutoff = Date.now() - 15000;
