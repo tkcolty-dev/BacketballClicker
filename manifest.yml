@@ -1,7 +1,7 @@
 applications:
 - name: basketball-clicker
   memory: 128M
-  disk_quota: 128M
+  disk_quota: 512M
   buildpacks:
   - nodejs_buildpack
   services:
